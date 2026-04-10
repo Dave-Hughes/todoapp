@@ -1,0 +1,230 @@
+{
+  "main": {
+    "id": "9c1d577d13b6d8e3",
+    "type": "split",
+    "children": [
+      {
+        "id": "6973fd1d9f4a6bdf",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "7d5e3ab7e788f2b5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "specs/views.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "views"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "a6e750820020e0d8",
+    "type": "split",
+    "children": [
+      {
+        "id": "c086c060861b2944",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3318b2db3687f083",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "1a0ddf30a690a915",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b2107560620412b6",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "72b007ac7f7d11ef",
+    "type": "split",
+    "children": [
+      {
+        "id": "8987a7e2b9e487ab",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3c18d7fc5285e55a",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "specs/views.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for views"
+            }
+          },
+          {
+            "id": "297b390754afefcc",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "specs/views.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from views"
+            }
+          },
+          {
+            "id": "5bd05592600f0d39",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "311ed7b03866f619",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "470330eab07812f4",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "specs/views.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of views"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "7d5e3ab7e788f2b5",
+  "lastOpenFiles": [
+    "node_modules/next/dist/next-devtools/server/font/geist-mono-latin.woff2",
+    "node_modules/next/dist/esm/next-devtools/server/font/geist-mono-latin.woff2",
+    "node_modules/next/dist/next-devtools/server/font/geist-mono-latin-ext.woff2",
+    "node_modules/next/dist/esm/next-devtools/server/font/geist-mono-latin-ext.woff2",
+    "node_modules/next/dist/next-devtools/server/font/geist-latin.woff2",
+    "node_modules/next/dist/next-devtools/server/font/geist-latin-ext.woff2",
+    "node_modules/next/dist/esm/next-devtools/server/font/geist-latin.woff2",
+    "node_modules/next/dist/esm/next-devtools/server/font/geist-latin-ext.woff2",
+    "node_modules/next/dist/compiled/@vercel/og/yoga.wasm",
+    "node_modules/next/dist/compiled/source-map08/mappings.wasm",
+    "node_modules/next/dist/compiled/@vercel/og/resvg.wasm",
+    "node_modules/next/README.md",
+    "node_modules/next/dist/compiled/regenerator-runtime/README.md",
+    "node_modules/next/dist/compiled/react-refresh/README.md",
+    "node_modules/next/dist/compiled/react-is/README.md",
+    "node_modules/next/dist/compiled/@babel/runtime/README.md",
+    "node_modules/next/license.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/webpack.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/webVitalsAttribution.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/useLightningcss.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/typescript.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/trailingSlash.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/urlImports.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/turbopack.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/transpilePackages.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/serverExternalPackages.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/reactStrictMode.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/redirects.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/rewrites.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/proxyClientMaxBodySize.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/productionBrowserSourceMaps.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/poweredByHeader.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/pageExtensions.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/output.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/optimizePackageImports.md",
+    "node_modules/next/dist/docs/02-pages/04-api-reference/04-config/01-next-config-js/onDemandEntries.md",
+    "public/window.svg",
+    "public/vercel.svg",
+    "public/next.svg",
+    "public/globe.svg",
+    "public/file.svg"
+  ]
+}
