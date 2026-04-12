@@ -37,9 +37,9 @@ Full rationale for every choice: [docs/tech-stack.md](docs/tech-stack.md).
 3. ✅ CLAUDE.md + AGENTS.md (this file)
 4. ✅ Voice and tone (baked into foundation pass)
 5. Design system bootstrap (`design:design-system` skill, after Impeccable is installed)
-6. Provision external systems + verify full CLI/API/MCP access
-7. Verify full CLI/API/MCP interconnectivity across the stack
-8. Update this file with hardened "always CLI first, never guess" rules
+6. ✅ Provision external systems + verify full CLI/API/MCP access
+7. ✅ Verify full CLI/API/MCP interconnectivity across the stack
+8. ✅ Update this file with hardened "always CLI first, never guess" rules
 9. Build (walking skeleton: task + Today view + minimal multiplayer scaffolding)
 10. Playwright e2e tests with heavy edge-case coverage
 11. Keep updating markdown after every major change
@@ -131,7 +131,7 @@ npm run lint                   # ESLint
 npm run format                 # Prettier (if configured)
 ```
 
-*(Update these once the project is initialized and the actual scripts are wired up.)*
+*(Drizzle, Playwright, and Prettier scripts will be added as those tools are configured.)*
 
 ## Things that must not be re-litigated
 
@@ -145,6 +145,35 @@ These were decided during the foundation and tech stack interviews and are not u
 - Voice is warm, playful, cheeky, competent, low-ego. Voice is theme-agnostic.
 - Design system is code-first. No Figma. Component docs next to code.
 - The entire tech stack in the table above. Rationale is in `docs/tech-stack.md`.
+
+## External systems — verified access (2026-04-10)
+
+All systems are provisioned and verified. Environment variables are set in Vercel (via integrations) and locally in `.env.local`.
+
+| System | Status | Vercel integration | Notes |
+|---|---|---|---|
+| Neon | **Connected** (Postgres 17, us-east-1) | ✅ `DATABASE_URL`, `DATABASE_URL_UNPOOLED` | Pooled + unpooled connections |
+| Clerk | **Connected** (dev instance) | ✅ `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY` | Production keys needed later |
+| Vercel | **Deployed** | — | Auto-deploys from `main` branch |
+| Cloudflare | **Account ready** | — | Domain pending naming decision |
+| Stripe | **Account ready** (sandbox) | — | Not integrated in v1 |
+| Resend | **Account ready** | — | New API key + domain verification when ready |
+
+**GitHub repo:** `Dave-Hughes/todoapp` (private)
+**Vercel project:** `todoapp`
+**Dev server:** `npm run dev` → `http://localhost:3000`
+
+## CLI-first rules (non-negotiable)
+
+These rules are hardened after verifying full CLI access across the stack. They exist because guessing about external systems is the #1 cause of wasted sessions.
+
+**1. Always CLI into tools first before asking Dave or guessing.** If you need to know the state of the database, query it. If you need to know what Clerk users exist, call the API. If you need to know what's deployed, check Vercel. Do not ask Dave questions you can answer with a CLI command.
+
+**2. Never suggest solutions or write code if you don't have full CLI access.** If you cannot reach the database, that is a blocker — stop and fix it before writing any code that depends on it. If an API key is missing or expired, that is a blocker. Do not work around it with assumptions.
+
+**3. Verify before every session.** At the start of any session that touches external systems, run a quick connectivity check. Don't assume the last session's access still works.
+
+**4. After every major change, update this file and the foundation docs.** A major feature, a new system provisioned, an error resolution, a convention change — all require a doc update in the same session. Future sessions inherit what you leave behind. "Now that we [did X], take a moment to update CLAUDE.md and our other markdown files so future me and you are aware."
 
 ## The craft bar
 
