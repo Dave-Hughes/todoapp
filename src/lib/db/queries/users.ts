@@ -17,7 +17,7 @@ export async function insertUser(args: {
   clerkUserId: string;
   displayName: string;
   householdId: string;
-}): Promise<User> {
+}): Promise<User | null> {
   const [row] = await db
     .insert(users)
     .values({
@@ -25,8 +25,9 @@ export async function insertUser(args: {
       displayName: args.displayName,
       householdId: args.householdId,
     })
+    .onConflictDoNothing({ target: users.clerkUserId })
     .returning();
-  return row;
+  return row ?? null;
 }
 
 export async function setUserHousehold(
