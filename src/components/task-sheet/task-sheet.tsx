@@ -9,7 +9,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X, MoreHorizontal, Plus, Minus, Trash2 } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Plus, Minus, Trash2 } from "lucide-react";
 import { BottomSheet } from "../bottom-sheet/bottom-sheet";
 import { TaskChip } from "../task-chip/task-chip";
 import { Popover } from "../popover/popover";
@@ -629,11 +629,11 @@ export function TaskSheet({
                 className="shrink-0"
               />
 
-              {/* More chip */}
+              {/* Details chip */}
               <TaskChip
-                icon={<MoreHorizontal size={14} strokeWidth={2} />}
-                label="More"
-                ariaLabel={isExpanded ? "Show fewer options" : "More task options"}
+                icon={isExpanded ? <ChevronUp size={14} strokeWidth={2} /> : <ChevronDown size={14} strokeWidth={2} />}
+                label="Details"
+                ariaLabel={isExpanded ? "Hide details" : "Show details"}
                 disabled={isSubmitting}
                 isActive={isExpanded}
                 onClick={handleExpand}

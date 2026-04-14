@@ -646,7 +646,7 @@ export default function TodayPage() {
               bg-[var(--color-accent)] text-[color:var(--color-accent-text)]
               hover:bg-[var(--color-accent-hover)]
               shadow-[var(--shadow-accent-glow)]
-              hover:shadow-[0_6px_20px_oklch(52%_0.16_42_/_0.35),0_3px_8px_oklch(52%_0.16_42_/_0.2)]
+              hover:shadow-[var(--shadow-accent-glow-strong,var(--shadow-accent-glow))]
               active:scale-[0.98]
               transition-all duration-[var(--duration-instant)]
               min-h-[var(--touch-target-min)]

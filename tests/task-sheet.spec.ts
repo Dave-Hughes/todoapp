@@ -175,12 +175,12 @@ test.describe("Task sheet — chip row", () => {
     await expect(repeatChip).toContainText("repeat");
   });
 
-  test("More chip is visible", async ({ page }) => {
+  test("Details chip is visible", async ({ page }) => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
     await expect(
-      dialog.getByRole("button", { name: /More task options/i })
+      dialog.getByRole("button", { name: /Show details/i })
     ).toBeVisible();
   });
 
@@ -529,7 +529,7 @@ test.describe("Task sheet — mobile chip row scroll", () => {
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
     // All chips should be in the DOM even if some are scrolled out of view
     await expect(dialog.getByRole("button", { name: /Set due date/i })).toBeAttached();
-    await expect(dialog.getByRole("button", { name: /More task options/i })).toBeAttached();
+    await expect(dialog.getByRole("button", { name: /Show details/i })).toBeAttached();
   });
 });
 
@@ -997,11 +997,11 @@ test.describe("Task sheet — repeat picker", () => {
 test.describe("Task sheet — expanded section", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("clicking More chip reveals expanded fields", async ({ page }) => {
+  test("clicking Details chip reveals expanded fields", async ({ page }) => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     // Time stepper should be visible
     await expect(dialog.getByText("When today?")).toBeVisible();
     // Flexible toggle should be visible — use role selectors to avoid ambiguity with page heading
@@ -1017,7 +1017,7 @@ test.describe("Task sheet — expanded section", () => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     // Initially shows "No time"
     await expect(page.getByText("No time")).toBeVisible();
     // Click increment
@@ -1033,7 +1033,7 @@ test.describe("Task sheet — expanded section", () => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     await page.getByRole("button", { name: "Later time" }).click();
     await expect(page.getByText("9:00 AM")).toBeVisible();
     await page.getByRole("button", { name: "Clear time" }).click();
@@ -1044,7 +1044,7 @@ test.describe("Task sheet — expanded section", () => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     // Default: Hard deadline is checked
     const hardDeadline = page.getByRole("radio", { name: "Hard deadline" });
     const whenYouCan = page.getByRole("radio", { name: "When you can" });
@@ -1060,7 +1060,7 @@ test.describe("Task sheet — expanded section", () => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     const notesField = page.getByLabel("Notes");
     await notesField.fill("Don't forget the recycling bin");
     await expect(notesField).toHaveValue("Don't forget the recycling bin");
@@ -1070,7 +1070,7 @@ test.describe("Task sheet — expanded section", () => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     const notesField = page.getByLabel("Notes");
     await expect(notesField).toHaveAttribute("placeholder", "Anything else worth saying?");
   });
@@ -1081,7 +1081,7 @@ test.describe("Task sheet — expanded section", () => {
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
     // Type a title with an auto-fill keyword
     await dialog.getByLabel("Task title").fill("Take out the trash");
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     // Points should show 5 with "auto" hint
     const pointsInput = dialog.getByLabel("Points");
     await expect(pointsInput).toHaveValue("5");
@@ -1093,23 +1093,23 @@ test.describe("Task sheet — expanded section", () => {
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
     await dialog.getByLabel("Task title").fill("Take out the trash");
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     const pointsInput = dialog.getByLabel("Points");
     await pointsInput.fill("10");
     // "auto" hint should be gone
     await expect(dialog.getByText("auto")).not.toBeVisible();
   });
 
-  test("More chip toggles expanded state", async ({ page }) => {
+  test("Details chip toggles expanded state", async ({ page }) => {
     await page.goto("/");
     await openSheet(page);
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    const moreChip = dialog.getByRole("button", { name: /More task options|Show fewer options/i });
+    const moreChip = dialog.getByRole("button", { name: /Show details|Hide details/i });
     // Expand
     await moreChip.click();
     await expect(dialog.getByText("When today?")).toBeVisible();
     // Collapse
-    await dialog.getByRole("button", { name: /Show fewer options/i }).click();
+    await dialog.getByRole("button", { name: /Hide details/i }).click();
     await expect(dialog.getByText("When today?")).not.toBeVisible();
   });
 });
@@ -1149,7 +1149,7 @@ test.describe("Task sheet — submit with picker values", () => {
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
     await dialog.getByLabel("Task title").fill("Organize closet");
     // Expand and set flexible
-    await dialog.getByRole("button", { name: /More task options/i }).click();
+    await dialog.getByRole("button", { name: /Show details/i }).click();
     await dialog.getByRole("radio", { name: "When you can" }).click();
     // Submit
     await page.keyboard.press("Meta+Enter");

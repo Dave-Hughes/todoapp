@@ -143,6 +143,7 @@ export function ConfirmDialog({
                     text-[length:var(--text-sm)] font-[var(--weight-semibold)]
                     min-h-[var(--touch-target-min)]
                     transition-colors duration-[var(--duration-instant)]
+                    outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                     ${
                       action.variant === "destructive"
                         ? "bg-[var(--color-destructive)] text-[color:var(--color-text-inverse)] hover:opacity-90"
@@ -166,6 +167,7 @@ export function ConfirmDialog({
                   hover:bg-[var(--color-surface-dim)]
                   min-h-[var(--touch-target-min)]
                   transition-colors duration-[var(--duration-instant)]
+                  outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                 "
               >
                 {cancelLabel}

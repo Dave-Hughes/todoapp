@@ -246,10 +246,10 @@ export function TaskListItem({
         <button
           type="button"
           onClick={() => onTap(task.id)}
-          className="flex-1 min-w-0 text-left cursor-pointer bg-transparent border-none p-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] rounded-[var(--radius-sm)]"
+          className="flex-1 min-w-0 text-left cursor-pointer bg-transparent border-none p-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] rounded-[var(--radius-sm)] group/edit"
           aria-label={`Edit "${task.title}"`}
         >
-          <div className="flex items-baseline gap-[var(--space-2)]">
+          <div className="flex items-center gap-[var(--space-2)]">
             <p
               className={`
                 text-[length:var(--text-base)] font-[var(--weight-medium)] leading-[var(--leading-tight)]
@@ -263,6 +263,12 @@ export function TaskListItem({
             >
               {task.title}
             </p>
+            <Pencil
+              size={12}
+              strokeWidth={2}
+              aria-hidden="true"
+              className="hidden lg:block shrink-0 opacity-0 group-hover/edit:opacity-40 transition-opacity duration-[var(--duration-instant)] text-[color:var(--color-text-tertiary)]"
+            />
           </div>
 
           {/* Metadata — minimal, scannable */}
@@ -418,6 +424,7 @@ export function TaskListItem({
                           rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
+                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                         "
                       >
                         <Pencil size={15} strokeWidth={2} className="text-[color:var(--color-text-secondary)]" />
@@ -441,6 +448,7 @@ export function TaskListItem({
                           rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
+                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                           ${isDone ? "opacity-40 cursor-not-allowed" : ""}
                         `}
                       >
@@ -465,6 +473,7 @@ export function TaskListItem({
                           rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
+                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                           ${isDone ? "opacity-40 cursor-not-allowed" : ""}
                         `}
                       >
@@ -487,6 +496,7 @@ export function TaskListItem({
                           rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
+                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                         "
                       >
                         <Trash2 size={15} strokeWidth={2} />
