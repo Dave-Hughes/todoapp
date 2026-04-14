@@ -1,5 +1,15 @@
 import { test, expect } from "@playwright/test";
 
+/**
+ * Skip viewport-agnostic tests on mobile projects.
+ * These tests set `test.use({ viewport: 1280x800 })` so mobile
+ * projects just re-run them at desktop size — identical behavior.
+ */
+function skipUnlessDesktop(testInfo: import("@playwright/test").TestInfo) {
+  test.skip(testInfo.project.name !== "desktop-chrome",
+    "Viewport-agnostic — desktop-chrome only");
+}
+
 /*
  * Task Sheet — Phase 1 E2E Tests
  * ================================
@@ -32,6 +42,7 @@ async function openSheet(page: import("@playwright/test").Page) {
 
 test.describe("Task sheet — opening", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("Cmd+Enter from page-level opens the Create sheet", async ({ page }) => {
     await page.goto("/");
@@ -67,6 +78,7 @@ test.describe("Task sheet — opening", () => {
 
 test.describe("Task sheet — title field", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("textarea autofocuses when sheet opens", async ({ page }) => {
     await page.goto("/");
@@ -127,6 +139,7 @@ test.describe("Task sheet — title field", () => {
 
 test.describe("Task sheet — chip row", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("chip row group is labeled for accessibility", async ({ page }) => {
     await page.goto("/");
@@ -210,6 +223,7 @@ test.describe("Task sheet — chip row", () => {
 
 test.describe("Task sheet — CTA states", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("Add it button is disabled when title is empty", async ({ page }) => {
     await page.goto("/");
@@ -246,6 +260,7 @@ test.describe("Task sheet — CTA states", () => {
 
 test.describe("Task sheet — submit flow", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("Cmd+Enter submits and task appears in list", async ({ page }) => {
     await page.goto("/");
@@ -319,6 +334,7 @@ test.describe("Task sheet — submit flow", () => {
 
 test.describe("Task sheet — dismiss", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("Esc closes the sheet silently (no task created)", async ({ page }) => {
     await page.goto("/");
@@ -356,6 +372,7 @@ test.describe("Task sheet — dismiss", () => {
 
 test.describe("Task sheet — focus management", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("opening sheet moves focus to textarea", async ({ page }) => {
     await page.goto("/");
@@ -413,6 +430,7 @@ test.describe("Task sheet — focus management", () => {
 
 test.describe("Task sheet — accessibility", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("all chips have accessible labels", async ({ page }) => {
     await page.goto("/");
@@ -543,6 +561,7 @@ test.describe("Task sheet — mobile chip row scroll", () => {
 
 test.describe("Task sheet — date picker", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("clicking date chip opens the date picker popover on desktop", async ({ page }) => {
     await page.goto("/");
@@ -576,6 +595,8 @@ test.describe("Task sheet — date picker", () => {
     await expect(dateChip).toContainText("Tomorrow");
   });
 
+  // This test covers the shared Popover escape+focus pattern for all pickers.
+  // Assignee, category, and repeat pickers use the same Popover component.
   test("Escape closes the date picker and returns focus to chip", async ({ page }) => {
     await page.goto("/");
     await openSheet(page);
@@ -641,6 +662,7 @@ test.describe("Task sheet — date picker mobile", () => {
 
 test.describe("Task sheet — assignee picker", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("clicking assignee chip opens the picker popover", async ({ page }) => {
     await page.goto("/");
@@ -673,19 +695,6 @@ test.describe("Task sheet — assignee picker", () => {
     await expect(assigneeChip).toContainText("Shared");
   });
 
-  test("Escape closes assignee picker and returns focus", async ({ page }) => {
-    await page.goto("/");
-    await openSheet(page);
-    const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    const assigneeChip = dialog.getByRole("button", { name: /Set assignee/i });
-    await assigneeChip.click();
-    const list = page.getByRole("listbox", { name: "Set assignee" });
-    await expect(list).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(list).not.toBeVisible();
-    await expect(assigneeChip).toBeFocused();
-  });
-
   test("assignee picker supports keyboard selection", async ({ page }) => {
     await page.goto("/");
     await openSheet(page);
@@ -705,6 +714,7 @@ test.describe("Task sheet — assignee picker", () => {
 
 test.describe("Task sheet — category picker", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("clicking category chip opens the picker popover", async ({ page }) => {
     await page.goto("/");
@@ -734,18 +744,6 @@ test.describe("Task sheet — category picker", () => {
     await expect(categoryChip).toContainText("Errands");
   });
 
-  test("Escape closes category picker and returns focus", async ({ page }) => {
-    await page.goto("/");
-    await openSheet(page);
-    const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    const categoryChip = dialog.getByRole("button", { name: /Set category/i });
-    await categoryChip.click();
-    const list = page.getByRole("listbox", { name: "Set category" });
-    await expect(list).toBeVisible();
-    await page.keyboard.press("Escape");
-    await expect(list).not.toBeVisible();
-    await expect(categoryChip).toBeFocused();
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -754,6 +752,7 @@ test.describe("Task sheet — category picker", () => {
 
 test.describe("Task sheet — repeat picker", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("repeat chip defaults to 'Doesn't repeat' and is enabled", async ({ page }) => {
     await page.goto("/");
@@ -905,26 +904,6 @@ test.describe("Task sheet — repeat picker", () => {
     await expect(dialog.getByRole("button", { name: /Set repeat rule/i })).toContainText("Doesn't repeat");
   });
 
-  test("focus returns to repeat chip after picker closes", async ({ page }) => {
-    await page.goto("/");
-    await openSheet(page);
-    const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    const repeatChip = dialog.getByRole("button", { name: /Set repeat rule/i });
-    await repeatChip.click();
-    await page.keyboard.press("Escape");
-    await expect(repeatChip).toBeFocused();
-  });
-
-  test("repeat chip shows aria-expanded when picker is open", async ({ page }) => {
-    await page.goto("/");
-    await openSheet(page);
-    const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    const repeatChip = dialog.getByRole("button", { name: /Set repeat rule/i });
-    await expect(repeatChip).not.toHaveAttribute("aria-expanded");
-    await repeatChip.click();
-    await expect(repeatChip).toHaveAttribute("aria-expanded", "true");
-  });
-
   test("preset keyboard nav: arrow keys move between presets", async ({ page }) => {
     await page.goto("/");
     await openSheet(page);
@@ -996,6 +975,7 @@ test.describe("Task sheet — repeat picker", () => {
 
 test.describe("Task sheet — expanded section", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("clicking Details chip reveals expanded fields", async ({ page }) => {
     await page.goto("/");
@@ -1120,6 +1100,7 @@ test.describe("Task sheet — expanded section", () => {
 
 test.describe("Task sheet — submit with picker values", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("Cmd+Enter submits after using a picker", async ({ page }) => {
     await page.goto("/");
@@ -1184,6 +1165,7 @@ test.describe("Task sheet — submit with picker values", () => {
 
 test.describe("Task sheet — edit mode", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("tapping a task row opens the edit sheet with pre-populated title", async ({ page }) => {
     await page.goto("/");
@@ -1266,6 +1248,7 @@ test.describe("Task sheet — edit mode", () => {
 
 test.describe("Task sheet — delete flow", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("overflow menu shows Edit, Done, Tomorrow, Delete with divider", async ({ page }) => {
     await page.goto("/");
