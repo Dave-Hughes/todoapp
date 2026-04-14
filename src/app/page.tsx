@@ -769,6 +769,7 @@ export default function TodayPage() {
               tasks={filteredDone}
               onUncomplete={handleUncomplete}
               onTap={handleTap}
+              onDelete={handleDelete}
             />
           )}
         </>
