@@ -36,12 +36,18 @@ Full rationale for every choice: [docs/tech-stack.md](docs/tech-stack.md).
 2. ✅ Tech stack interview → `docs/tech-stack.md`
 3. ✅ CLAUDE.md + AGENTS.md (this file)
 4. ✅ Voice and tone (baked into foundation pass)
-5. Design system bootstrap (`design:design-system` skill, after Impeccable is installed)
+5. ✅ Design system bootstrap (Today view, tokens, Cozy theme, 14 components)
 6. ✅ Provision external systems + verify full CLI/API/MCP access
 7. ✅ Verify full CLI/API/MCP interconnectivity across the stack
 8. ✅ Update this file with hardened "always CLI first, never guess" rules
 9. Build (walking skeleton: task + Today view + minimal multiplayer scaffolding)
-10. Playwright e2e tests with heavy edge-case coverage
+   - ✅ Task Create Sheet Phase 1: shell, title input, chip row, CTA, error state
+   - ✅ Task Create Sheet Phase 1b: BottomSheet composition, Enter-to-submit, mobile scroll
+   - ✅ Task Create Sheet Phase 2: inline pickers (date, assignee, category), expanded section (time, flexible, notes, points)
+   - ✅ Post-Phase 2 audit: extracted SegmentedControl, fixed touch targets, grid-row animation, responsive picker widths
+   - ✅ Phase 3: Repeat picker with NLP (presets + natural language input, client-side parser)
+   - ✅ Phase 4: Edit mode + Delete (edit sheet, inline delete confirmation, ConfirmDialog, undo toast)
+10. ✅ Playwright e2e tests (646 passed, 5 skipped across 3 viewports)
 11. Keep updating markdown after every major change
 
 ## Foundation docs (read before making decisions)
@@ -72,12 +78,13 @@ These define the product. Read the ones relevant to your task. Read all of them 
 - **Motion is tuned, not defaulted.** Respect `prefers-reduced-motion`.
 - **No Figma.** The code is the design system. There is no parallel source of truth.
 
-## File structure (expected once code exists)
+## File structure
 
 ```
 ToDoApp/
 ├── CLAUDE.md                  ← you are here
 ├── AGENTS.md                  ← agent role definitions
+├── .impeccable.md             ← Design Context for Impeccable skills
 ├── README.md
 ├── design-system/
 │   └── README.md              ← design system rules
@@ -89,28 +96,75 @@ ToDoApp/
 │   ├── voice-and-tone.md
 │   ├── themes.md
 │   ├── tech-stack.md
-│   └── open-questions.md
+│   ├── open-questions.md
+│   └── session-handoff-design-system.md
 ├── specs/
 │   ├── tasks.md
 │   ├── views.md
 │   └── multiplayer.md
 └── src/
-    ├── app/                   ← Next.js App Router pages
-    ├── components/            ← components with sibling .md and .test.ts
-    │   └── button/
-    │       ├── button.tsx
-    │       ├── button.md
-    │       └── button.test.ts
-    ├── lib/                   ← shared utilities, Drizzle client, etc.
-    ├── db/
-    │   ├── schema.ts          ← Drizzle schema (source of truth for data model)
-    │   └── migrations/        ← Drizzle Kit migrations
+    ├── app/
+    │   ├── globals.css        ← Tailwind v4 + token/theme imports
+    │   ├── layout.tsx         ← Root layout (Bricolage Grotesque + Gabarito fonts)
+    │   └── page.tsx           ← Today view (hero surface with demo data)
+    ├── components/            ← each component has .tsx + .md doc
+    │   ├── app-shell/         ← responsive layout frame
+    │   ├── avatar/            ← initial-based avatar with notification dot
+    │   ├── bottom-sheet/      ← draggable sheet with focus trap
+    │   ├── confirm-dialog/    ← centered modal for delete confirmations
+    │   ├── bottom-tabs/       ← mobile tab bar (Today/Week/Month/Settings)
+    │   ├── checkbox/          ← animated circle checkbox
+    │   ├── done-accordion/    ← collapsible completed tasks
+    │   ├── empty-state/       ← two variants (no-tasks, caught-up) with rotating copy
+    │   ├── fab/               ← floating action button (mobile)
+    │   ├── filter-toggle/     ← thin wrapper around SegmentedControl for Mine/Theirs/All
+    │   ├── mobile-header/     ← compact header with points
+    │   ├── popover/           ← portal-rendered click-triggered popover (chip pickers)
+    │   ├── repeat-picker/    ← presets + NLP input for recurrence rules (3 files: tsx, parse, format)
+    │   ├── date-picker/       ← calendar grid + preset row (Today/Tomorrow/Next week)
+    │   ├── assignee-picker/   ← listbox: Me / Partner / Shared with avatar initials
+    │   ├── category-picker/   ← listbox: 5 categories with colored dots
+    │   ├── segmented-control/ ← generic animated radiogroup (shared by FilterToggle + flexible toggle)
+    │   ├── sidebar/           ← desktop rail with peek/hover/pinned states, points hero, nav
+    │   ├── task-chip/         ← pill chip for task field shortcuts (date, assignee, etc.)
+    │   ├── task-list-item/    ← swipeable task row
+    │   ├── task-sheet/        ← task creation sheet with inline pickers + expanded section
+    │   ├── toast/             ← timed notification with undo
+    │   └── tooltip/           ← portal-rendered tooltip with shortcut hints
+    ├── lib/                   ← shared utilities, Drizzle client, etc. (TBD)
+    ├── db/                    ← Drizzle schema and migrations (TBD)
     └── styles/
-        ├── tokens.css         ← token contract (CSS variables)
+        ├── tokens.css         ← token contract (70+ CSS variables)
         └── themes/
-            ├── cozy.css       ← default theme
-            └── ...
+            └── cozy.css       ← default theme (OKLCH colors, warm terracotta accent)
 ```
+
+## Design system conventions (established Step 5)
+
+| Decision | Value |
+|---|---|
+| Body font | Bricolage Grotesque (Google Fonts, variable weight) |
+| Display font | Gabarito (Google Fonts, variable weight) |
+| Color space | OKLCH everywhere |
+| Brand hue | ~42° (warm terracotta/peach accent) |
+| Neutral tint hue | 55° (warm, chroma 0.005-0.012) |
+| Spacing base | 4pt grid (4, 8, 12, 16, 24, 32, 48, 64, 96) |
+| Easing | ease-out-quart `cubic-bezier(0.25, 1, 0.5, 1)` — no bounce/elastic |
+| Icon library | Lucide (line, strokeWidth 2, rounded corners) |
+| Theme | Light (Cozy) — derived from domestic/couples context |
+| Canvas/surface contrast | Canvas 93% / Surface 98.5% lightness (warm parchment) |
+| Texture | Subtle fractal noise at 0.3 opacity on canvas |
+| Desktop nav | Left rail — peek (72px) by default, expands to 272px on hover, pinnable (⌘\) with persisted state |
+| Mobile nav | Bottom tab bar (4 slots) + compact header with points |
+| Task creation | Bottom sheet (both breakpoints) |
+| Inline pickers | Popover (desktop) or secondary BottomSheet (mobile, date only) |
+| Segmented controls | Shared `SegmentedControl` primitive with animated layoutId indicator |
+| Height animation | `grid-template-rows: 0fr → 1fr` (not Framer Motion height) |
+| Breakpoint | lg: (1024px) for desktop/mobile split |
+| Edit sheet entry | Tap task row (primary) or "Edit" in overflow menu (secondary) |
+| Delete confirmation (non-repeating) | Inline in overflow menu — transforms to confirmation row |
+| Delete confirmation (repeating) | Centered ConfirmDialog with branching options |
+| Delete confirmation (from edit sheet) | ConfirmDialog (sheet closes first) |
 
 ## Commands
 
@@ -119,8 +173,9 @@ ToDoApp/
 npm run dev                    # Start Next.js dev server
 
 # Testing
-npm run test                   # Vitest unit/integration tests
-npm run test:e2e               # Playwright end-to-end tests
+npm run test:e2e               # Playwright e2e tests (all 3 viewports: desktop Chrome, mobile Chrome, mobile Safari)
+npm run test:e2e:ui            # Playwright tests with interactive UI
+npm run test                   # Vitest unit/integration tests (not yet configured)
 
 # Database
 npx drizzle-kit generate       # Generate migration from schema changes
@@ -131,7 +186,17 @@ npm run lint                   # ESLint
 npm run format                 # Prettier (if configured)
 ```
 
-*(Drizzle, Playwright, and Prettier scripts will be added as those tools are configured.)*
+## Test coverage (as of Phase 4)
+
+**293 passed, 4 skipped, 0 failed** on task-sheet across 3 viewports (desktop Chrome, Pixel 7, iPhone 14). ~743 total across both test files.
+
+Test files:
+- `tests/today-view.spec.ts` — 150 tests × 3 viewports (Today view, layout, filter, tasks, empty states, etc.)
+- `tests/task-sheet.spec.ts` — ~99 tests × 3 viewports (sheet open/close, title input, all 5 chip pickers, repeat picker with NLP, expanded section, submit with picker values, reset on reopen, accessibility, edit mode, delete flow)
+
+Covers (today-view): page load, page header, desktop layout (sidebar), mobile layout (header, tabs, FAB), filter toggle, task completion, task uncomplete, Done accordion, empty states, task creation, roll over, postpone, task metadata, section labels, hover actions, undo, overflow menu, mobile roll-over, completion micro-celebration, partner points, accessibility, keyboard nav, focus trap, theme tokens, voice and tone, responsive, edge cases.
+
+Covers (task-sheet): sheet open/close (Cmd+Enter, FAB, toolbar button), title field (autofocus, placeholder, multi-line, keyboard shortcuts), chip row (defaults, horizontal scroll, fade mask), CTA states (enabled, disabled, submitting, error), date picker (popover open, preset selection, calendar grid, arrow-key nav, Escape focus return, mobile BottomSheet divergence), assignee picker (open, select partner/shared, Escape focus return, keyboard selection), category picker (open, "File it where?" header, select category, Escape focus return), repeat picker (chip enabled, popover open, all 4 presets commit + update chip, NLP input for single day/multi-day/interval/monthly, real-time preview, parse error on unparseable input, clear rule, Escape close, focus return, aria-expanded, keyboard nav between presets, value reset on reopen, input pre-population for custom rules), expanded section (More toggle, time stepper increment/clear, flexible toggle, notes field + placeholder, points auto-fill + manual edit), cross-cutting (submit with picker values, flexible tasks in correct section, picker reset on reopen), edit mode (tap-to-edit, overflow menu edit, pre-populated fields, header/CTA variants, auto-expand More, save updates list, close without saving preserves task), delete flow (inline menu confirmation, "Never mind" cancel, delete removes task, undo toast, undo restores task, delete from edit sheet via dialog, done tasks menu with disabled items).
 
 ## Things that must not be re-litigated
 
