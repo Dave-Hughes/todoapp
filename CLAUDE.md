@@ -30,23 +30,27 @@ A to-do app purpose-built for couples. This is a commercial product intended to 
 
 Full rationale for every choice: [docs/tech-stack.md](docs/tech-stack.md).
 
-## The build flow
+## Build progress
 
 1. ✅ Product interview (foundation docs)
 2. ✅ Tech stack interview → `docs/tech-stack.md`
-3. ✅ CLAUDE.md + AGENTS.md (this file)
-4. ✅ Voice and tone (baked into foundation pass)
-5. Design system bootstrap (`design:design-system` skill, after Impeccable is installed)
-6. Provision external systems + verify full CLI/API/MCP access
-7. Verify full CLI/API/MCP interconnectivity across the stack
-8. Update this file with hardened "always CLI first, never guess" rules
-9. Build (walking skeleton: task + Today view + minimal multiplayer scaffolding)
-10. Playwright e2e tests with heavy edge-case coverage
-11. Keep updating markdown after every major change
+3. ✅ CLAUDE.md + AGENTS.md
+4. ✅ Voice and tone
+5. ✅ Design system bootstrap (Today view, tokens, Cozy theme)
+6. ✅ Provision external systems + verify CLI/API/MCP access
+7. ✅ Interconnectivity verified
+8. ✅ CLI-first rules hardened
+9. Build (walking skeleton)
+   - ✅ Phase 1: Task Create Sheet (shell, title, chips, CTA, error)
+   - ✅ Phase 1b: BottomSheet composition, Enter-to-submit, mobile scroll
+   - ✅ Phase 2: Inline pickers (date, assignee, category), expanded section
+   - ✅ Post-Phase 2 audit: SegmentedControl, touch targets, grid-row animation
+   - ✅ Phase 3: Repeat picker with NLP
+   - ✅ Phase 4: Edit mode + Delete
+10. ✅ Playwright e2e (274 runs, 0 failures — optimized from 733)
+11. Keep updating docs after every major change
 
-## Foundation docs (read before making decisions)
-
-These define the product. Read the ones relevant to your task. Read all of them if this is your first session.
+## Foundation docs (read the ones relevant to your task)
 
 | Doc | What it covers |
 |---|---|
@@ -59,123 +63,74 @@ These define the product. Read the ones relevant to your task. Read all of them 
 | [docs/tech-stack.md](docs/tech-stack.md) | Every stack choice and why |
 | [docs/open-questions.md](docs/open-questions.md) | Unresolved decisions |
 
-## Design system rules
+## Design system
 
-**Read [design-system/README.md](design-system/README.md) before touching any UI code.** The full rules are there. The non-negotiables:
+**Read [design-system/README.md](design-system/README.md) before touching any UI code.** It has the full rules AND the conventions table (fonts, colors, spacing, motion, layout patterns). The non-negotiables:
 
-- **No hard-coded values. Ever.** Colors, fonts, spacing, motion — everything comes from theme tokens. If a token doesn't exist, add it to every theme first, then use it.
-- **Tokens are semantic, not descriptive.** `--color-accent`, not `--color-coral`.
-- **Components are the design system.** Code is the source of truth. Docs live next to code. Drift is a bug.
-- **Every component ships with real states** (hover, focus, disabled, loading, empty, error — whichever apply).
-- **Every component ships accessible.** WCAG 2.1 AA. Keyboard navigable. Screen reader labeled. Touch targets ≥ 44px.
-- **Every component ships with its doc** in the same commit.
-- **Motion is tuned, not defaulted.** Respect `prefers-reduced-motion`.
-- **No Figma.** The code is the design system. There is no parallel source of truth.
-
-## File structure (expected once code exists)
-
-```
-ToDoApp/
-├── CLAUDE.md                  ← you are here
-├── AGENTS.md                  ← agent role definitions
-├── README.md
-├── design-system/
-│   └── README.md              ← design system rules
-├── docs/
-│   ├── vision.md
-│   ├── personas.md
-│   ├── scope-v1.md
-│   ├── principles.md
-│   ├── voice-and-tone.md
-│   ├── themes.md
-│   ├── tech-stack.md
-│   └── open-questions.md
-├── specs/
-│   ├── tasks.md
-│   ├── views.md
-│   └── multiplayer.md
-└── src/
-    ├── app/                   ← Next.js App Router pages
-    ├── components/            ← components with sibling .md and .test.ts
-    │   └── button/
-    │       ├── button.tsx
-    │       ├── button.md
-    │       └── button.test.ts
-    ├── lib/                   ← shared utilities, Drizzle client, etc.
-    ├── db/
-    │   ├── schema.ts          ← Drizzle schema (source of truth for data model)
-    │   └── migrations/        ← Drizzle Kit migrations
-    └── styles/
-        ├── tokens.css         ← token contract (CSS variables)
-        └── themes/
-            ├── cozy.css       ← default theme
-            └── ...
-```
+- No hard-coded values. Ever. Everything from theme tokens.
+- Tokens are semantic, not descriptive.
+- Components are the design system. Code is the source of truth.
+- Every component ships with real states, accessibility, and its `.md` doc in the same commit.
+- No Figma. The code is the design system.
 
 ## Commands
 
 ```bash
-# Development
 npm run dev                    # Start Next.js dev server
-
-# Testing
-npm run test                   # Vitest unit/integration tests
-npm run test:e2e               # Playwright end-to-end tests
-
-# Database
-npx drizzle-kit generate       # Generate migration from schema changes
-npx drizzle-kit migrate        # Run pending migrations
-
-# Linting / formatting
+npm run test:e2e               # Playwright e2e (3 viewports)
+npm run test:e2e:ui            # Playwright with interactive UI
+npm run test                   # Vitest (not yet configured)
+npx drizzle-kit generate       # Generate migration
+npx drizzle-kit migrate        # Run migrations
 npm run lint                   # ESLint
-npm run format                 # Prettier (if configured)
 ```
-
-*(Update these once the project is initialized and the actual scripts are wired up.)*
 
 ## Things that must not be re-litigated
 
-These were decided during the foundation and tech stack interviews and are not up for rediscussion unless Dave explicitly opens them:
+- The wedge is "purpose-built for couples" — positioning, not a feature.
+- Core emotional claim: making invisible labor visible — recognition, not just coordination.
+- Two personas: The Organizer and The Willing Partner.
+- v1 scope is locked. No Vault, Bounties, SMS, extra themes, calendar sync, digests, habit stacks, or iOS.
+- Default theme: warm/playful/cheeky-cozy ("Cozy"). Others come later.
+- Voice: warm, playful, cheeky, competent, low-ego. Theme-agnostic.
+- Design system is code-first. No Figma.
+- The entire tech stack above. Rationale in `docs/tech-stack.md`.
 
-- The wedge is "purpose-built for couples" — not a feature, a positioning constraint.
-- The core emotional claim is making invisible labor visible — recognition, not just coordination.
-- Two personas: The Organizer and The Willing Partner. Roles are symmetric at the account level and asymmetric per-moment.
-- v1 does not include Vault, Bounties, SMS, themes beyond default, calendar sync, email digests, habit stacks, or iOS.
-- The default theme is warm/playful/cheeky-cozy ("Cozy"). Other themes come later.
-- Voice is warm, playful, cheeky, competent, low-ego. Voice is theme-agnostic.
-- Design system is code-first. No Figma. Component docs next to code.
-- The entire tech stack in the table above. Rationale is in `docs/tech-stack.md`.
+## External systems (verified 2026-04-10)
+
+| System | Status | Notes |
+|---|---|---|
+| Neon | Connected (Postgres 17, us-east-1) | `DATABASE_URL` + `DATABASE_URL_UNPOOLED` via Vercel integration |
+| Clerk | Connected (dev instance) | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` |
+| Vercel | Deployed | Auto-deploys from `main` |
+| Cloudflare | Account ready | Domain pending naming decision |
+| Stripe | Account ready (sandbox) | Not integrated in v1 |
+| Resend | Account ready | API key + domain verification when ready |
+
+**GitHub:** `Dave-Hughes/todoapp` (private) · **Vercel:** `todoapp` · **Dev:** `npm run dev` → `http://localhost:3000`
+
+## CLI-first rules (non-negotiable)
+
+1. **Always CLI into tools first.** Don't ask Dave questions you can answer with a CLI command.
+2. **Never write code without verified CLI access** to the systems it depends on.
+3. **Verify access at session start** when touching external systems.
+4. **Update docs after every major change.** Future sessions inherit what you leave behind.
 
 ## The craft bar
 
-This project's quality bar is **"would I show this to a paying customer as an example of my work."** Higher than "it works," not higher than "it ships."
+**"Would I show this to a paying customer as an example of my work."**
 
-The principles most likely to be violated by a lazy session:
-
-- **#13–14: CLI-first.** Never propose solutions without verified CLI access to the system in question.
-- **#15: Prepared for post-v1, not built for it.** Architecture assumes future features. v1 doesn't build them.
-- **#18a: Components are the design system.** Update the doc when you update the component. Same commit.
-- **#7: Themed from day one.** Every component uses theme tokens. No hard-coded values, ever.
+Principles most likely to be violated by a lazy session:
+- #13–14: CLI-first. Never propose solutions without verified CLI access.
+- #15: Prepared for post-v1, not built for it.
+- #18a: Update the doc when you update the component. Same commit.
+- #7: Themed from day one. No hard-coded values.
 
 ## Session checklist
 
-Before starting work in any session:
-
 1. Read this file.
-2. Read the docs relevant to your task (see the table above).
-3. If touching UI: read `design-system/README.md`, `docs/themes.md`, `docs/voice-and-tone.md`.
-4. Confirm CLI access to any external system you're about to use.
-5. Check `docs/open-questions.md` for anything relevant to your task.
-6. After completing work: update this file and relevant docs if the project state has changed.
-
-## Updating this file
-
-This file is a living document. Update it when:
-
-- A new tool or system is provisioned (add connection details, CLI commands).
-- The file structure changes meaningfully.
-- A new convention is established.
-- A major milestone is reached (update the build flow checkboxes).
-- CLI access to a new system is verified (add the verification command).
-
-A major change without a CLAUDE.md update is incomplete.
+2. Read the foundation docs relevant to your task.
+3. If touching UI: read `design-system/README.md`.
+4. Confirm CLI access to any external system you'll use.
+5. Check `docs/open-questions.md` for anything relevant.
+6. After work: update docs if project state changed.

@@ -1,0 +1,129 @@
+/*
+ * Theme: Cozy
+ * ===========
+ * Warm, playful, cheeky-cozy. The one Dave and Krista would live in daily.
+ * A house you want to come home to — not a showroom.
+ *
+ * Brand hue: ~42° (warm terracotta/peach family)
+ * Neutrals tinted toward brand hue at chroma 0.008–0.015
+ * All colors in OKLCH for perceptual uniformity.
+ * No pure black, no pure white.
+ */
+
+:root,
+[data-theme="cozy"] {
+  /* ================================================================
+   * CANVAS & SURFACES
+   * ================================================================ */
+
+  /* Warm parchment canvas — noticeably warm, gives surface cards real presence */
+  --color-canvas: oklch(93% 0.015 55);
+  /* Subtle hover state between canvas and surface */
+  --color-surface-dim: oklch(95.5% 0.01 55);
+  /* Bright surface for task cards — clear lift off canvas */
+  --color-surface: oklch(98.5% 0.005 55);
+  /* Even brighter for popovers, sheets */
+  --color-surface-elevated: oklch(99% 0.003 55);
+
+  /* ================================================================
+   * TEXT
+   * ================================================================ */
+
+  /* Primary: warm near-black, not pure #000 */
+  --color-text-primary: oklch(18% 0.012 55);
+  /* Secondary: softer for metadata, descriptions */
+  --color-text-secondary: oklch(42% 0.01 55);
+  /* Tertiary: timestamps, hints — 50% L targets ~4.5:1 on bright surfaces */
+  --color-text-tertiary: oklch(50% 0.008 55);
+  /* Disabled: clearly reduced but still legible */
+  --color-text-disabled: oklch(70% 0.006 55);
+  /* Inverse: for text on accent backgrounds */
+  --color-text-inverse: oklch(99% 0.005 55);
+
+  /* ================================================================
+   * ACCENT — warm terracotta/peach
+   * ================================================================ */
+
+  /* The accent: warm, present but not screaming. Terracotta-peach — 52% L for 4.5:1 contrast with near-white text. */
+  --color-accent: oklch(52% 0.16 42);
+  /* Darker for hover — more saturation, slightly darker */
+  --color-accent-hover: oklch(46% 0.17 42);
+  /* Very subtle tint for accent backgrounds */
+  --color-accent-subtle: oklch(94% 0.04 42);
+  /* Text color that works on accent bg */
+  --color-accent-text: oklch(99% 0.005 55);
+
+  /* ================================================================
+   * SEMANTIC COLORS
+   * ================================================================ */
+
+  /* Success: sage green — muted, not neon. 48% L for ~4.8:1 on bright surfaces. */
+  --color-success: oklch(48% 0.1 155);
+  --color-success-subtle: oklch(94% 0.03 155);
+
+  /* Warning: honey — warm amber. 52% L for ~4.5:1 on bright surfaces. */
+  --color-warning: oklch(52% 0.14 80);
+  --color-warning-subtle: oklch(93% 0.04 80);
+
+  /* Destructive: brick red — serious but not alarming */
+  --color-destructive: oklch(52% 0.14 25);
+  --color-destructive-subtle: oklch(94% 0.03 25);
+
+  /* ================================================================
+   * CATEGORY COLORS — muted, distinguishable, warm
+   * Slot 1: Terracotta (accent family) — Errands
+   * Slot 2: Sage — Health, wellness
+   * Slot 3: Honey — Home, domestic
+   * Slot 4: Plum — Bills, finance
+   * Slot 5: Dusty blue — misc/overflow
+   * ================================================================ */
+
+  --color-category-1: oklch(52% 0.12 42);
+  --color-category-1-subtle: oklch(94% 0.035 42);
+  --color-category-2: oklch(48% 0.09 155);
+  --color-category-2-subtle: oklch(94% 0.03 155);
+  --color-category-3: oklch(52% 0.11 80);
+  --color-category-3-subtle: oklch(93% 0.035 80);
+  --color-category-4: oklch(48% 0.08 310);
+  --color-category-4-subtle: oklch(94% 0.025 310);
+  --color-category-5: oklch(50% 0.08 245);
+  --color-category-5-subtle: oklch(94% 0.025 245);
+
+  /* ================================================================
+   * BORDERS & DIVIDERS
+   * ================================================================ */
+
+  --color-border: oklch(85% 0.008 55);
+  --color-border-subtle: oklch(90% 0.006 55);
+  --color-border-focus: oklch(52% 0.16 42);    /* matches accent */
+
+  /* ================================================================
+   * SPECIFIC SURFACES
+   * ================================================================ */
+
+  /* Chip surfaces — quiet secondary action affordance */
+  --color-chip-bg: oklch(93% 0.01 55);    /* warm near-canvas, subtle lift */
+  --color-chip-bg-hover: oklch(89% 0.012 55); /* slightly darker warm neutral on hover */
+
+  /* Sheet/modal backdrop */
+  --color-overlay: oklch(18% 0.012 55 / 0.4);
+  /* Skeleton loading pulse base */
+  --color-skeleton: oklch(90% 0.008 55);
+
+  /* ================================================================
+   * TYPOGRAPHY
+   * ================================================================ */
+
+  --font-body: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-display: "Gabarito", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  /* ================================================================
+   * SHADOWS — warm-tinted, more visible
+   * ================================================================ */
+
+  --shadow-sm: 0 1px 3px oklch(18% 0.01 55 / 0.08), 0 1px 1px oklch(18% 0.01 55 / 0.04);
+  --shadow-md: 0 3px 10px oklch(18% 0.01 55 / 0.1), 0 1px 3px oklch(18% 0.01 55 / 0.06);
+  --shadow-lg: 0 6px 20px oklch(18% 0.01 55 / 0.12), 0 2px 6px oklch(18% 0.01 55 / 0.06);
+  --shadow-accent-glow: 0 4px 14px oklch(52% 0.16 42 / 0.25), 0 2px 6px oklch(52% 0.16 42 / 0.15);
+}

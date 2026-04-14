@@ -42,3 +42,14 @@ next-env.d.ts
 
 # Drizzle journal cache (migrations folder itself IS checked in)
 .drizzle/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Editor / session state
+.obsidian/workspace.json
+.claude/

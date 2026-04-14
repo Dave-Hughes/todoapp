@@ -27,43 +27,33 @@ These need answers before the first line of application code is written.
 
 **2. ~~Tech stack decisions inside the default stack.~~** ✅ Resolved 2026-04-10. See [tech-stack.md](tech-stack.md). Auth: Clerk. ORM: Drizzle. Testing: Vitest + React Testing Library + Playwright. Household scoping via Clerk Organizations + Neon. Full rationale in the doc.
 
-**3. How is a "household" represented in the data model?**
-v1 supports exactly two accounts in one shared household. The household entity is what tasks, points, and (eventually) Vault items belong to. Decisions needed: is the household created by the first user and joined by the second? What's the unique identifier? What happens if both partners try to create a household independently before linking?
+**~~3. How is a "household" represented in the data model?~~** ✅ Resolved 2026-04-11. Own `households` table in Neon, Clerk Organizations as auth/invite layer only. Every sign-up creates a household. Accepting an invite merges the partner into the inviter's household (migrating any solo tasks); the abandoned household is soft-deleted. Household has an editable `name` field, auto-generated as "Partner1 & Partner2" when the second partner joins. Full details in [specs/tasks.md](../specs/tasks.md) and [specs/multiplayer.md](../specs/multiplayer.md).
 
-**4. Partner onboarding flow — the two-sided problem.**
-The Organizer's first run and the Willing Partner's first run are different experiences. The Willing Partner did not seek out this app; they were invited. Their first screen cannot feel like work. Needs a dedicated interview before building multiplayer. See [specs/multiplayer.md](../specs/multiplayer.md).
+**~~4. Partner onboarding flow — the two-sided problem.~~** ✅ Resolved 2026-04-11. Two distinct flows. **Organizer:** sign up → auto-create household → empty Today with "get what's in your head out of there" dump moment → rapid-fire task creation → invite prompt after a few tasks (one-time nudge + persistent quiet affordance) → send invite via email or copy-link. Can assign tasks to "Partner" (sentinel UUID) before partner joins. **Willing Partner:** branded invite landing page → sign up → land directly in Today view with the reveal moment (adaptive copy based on whether tasks are pre-assigned) → one soft suggested action ("Want to grab one?"), dismissible, fires once. No tutorial, no feature tour. Full details in [specs/multiplayer.md](../specs/multiplayer.md).
 
 ## Blocking during build
 
 These can be deferred until the relevant feature is being built, but must be resolved then.
 
-**5. What does "snappy" mean in concrete numbers?**
-The foundation docs say the app must feel snappy. Before building the task creation flow, pin down the targets: max time-to-interactive after tapping "new task," max latency between tapping complete and the visual state flipping, max time between a partner completing a task and it appearing on the other partner's screen. Specifics go in [specs/tasks.md](../specs/tasks.md).
+**~~5. What does "snappy" mean in concrete numbers?~~** ✅ Resolved 2026-04-11. Optimistic UI everywhere — creation and completion feel instant (animation begins within one frame, ~16ms). Server confirm < 300ms. Cross-partner sync via polling every 5 seconds. View switching instant (client-side re-filter, no network round-trip). Points increment is part of the optimistic completion update. Full targets in [specs/tasks.md](../specs/tasks.md).
 
-**6. Notification philosophy.**
-How and when does the app nudge either partner? What's the default — loud or quiet? Per-task opt-in or household-level setting? What about the Willing Partner who doesn't live in the app — do they get email for every assignment, or only for explicit nudges from the Organizer? This has to be figured out before multiplayer sync/notifications are built.
+**~~6. Notification philosophy.~~** ✅ Resolved 2026-04-11. Quiet by default, in-app only for v1. Three events generate notifications: (1) partner assigned a task to you, (2) partner completed a task you assigned to them (the recognition moment), (3) partner joined the household. Everything else visible on next open/poll — no notification. Shared task completion: no notification in v1. Presentation: lightweight badge/dot, simple notification list, read/unread. No per-event settings in v1; settings arrive post-v1 with push/SMS/email. Full details in [specs/multiplayer.md](../specs/multiplayer.md).
 
-**7. Repeat-rule edge cases.**
-What exactly are the supported repeat rules for v1? Daily is obvious. Weekly is obvious. Monthly gets weird (31st of every month in a February?). Custom intervals — how custom? DST and time-zone handling for tasks with times attached. Goes in [specs/tasks.md](../specs/tasks.md) just before building.
+**~~7. Repeat-rule edge cases.~~** ✅ Resolved 2026-04-11. Supported in v1: daily (every N days), weekly (every N weeks on one or more specific days — multi-day supported as single rule), monthly (every N months on a specific date, with clamping for short months). Yearly noted for post-v1. Tasks support date-only or date+time; timezone stored on user profile. Repeat rules generate next occurrence in user's local time (preserves wall-clock time across DST). Spawn-next model: each occurrence is its own task row, with rolling 60-day pre-generation window. Full details in [specs/tasks.md](../specs/tasks.md).
 
-**8. Concurrent-edit behavior.**
-Both partners open the same task at the same time and edit it. What happens? Last-write-wins is the simplest answer; it's also the one that causes the most "why did my edit disappear" moments. Needs a decision before building the task editor.
+**~~8. Concurrent-edit behavior.~~** ✅ Resolved 2026-04-11. Per-field last-write-wins. Both partners editing different fields of the same task: both saves succeed. Both editing the same field: last save to the server wins. Next poll (every 5 seconds) shows both partners the current state. No locking, no conflict dialogs. Full details in [specs/tasks.md](../specs/tasks.md).
 
-**9. Category system.**
-Tasks have categories in v1. Open questions: are categories pre-seeded or user-created? Shared between partners or personal? How many is too many? Can a task belong to more than one category? This is a surprisingly deep design decision for something that looks like a dropdown.
+**~~9. Category system.~~** ✅ Resolved 2026-04-11. Categories are household-level, shared by both partners. Pre-seeded with 2–3 sensible defaults (exact defaults TBD) including an "Uncategorized" catch-all. Users can add, rename, reorder, and delete categories. One category per task (single `category_id` FK). Per-user categories noted for post-v1. Full details in [specs/tasks.md](../specs/tasks.md).
 
-**10. "Assigned to both partners" — does it exist?**
-Some household tasks belong to *both* people ("decide together where to go for dinner Saturday"). Does v1 support that, or is every task assigned to exactly one person? Leaning toward: every task has exactly one owner, and "decide together" is a category or tag. But not decided.
+**~~10. "Assigned to both partners" — does it exist?~~** ✅ Resolved 2026-04-11. Yes, but it's called **"Shared."** Three assignee options: Me, Partner, or Shared. Shared = `assignee_user_id` is null, meaning either partner can complete it. Shared tasks appear in every filter state (Mine, Theirs, All). The completing partner earns the points. Full details in [specs/tasks.md](../specs/tasks.md).
 
 ## Long-horizon questions
 
 These don't block v1 but the *existence* of the question shapes how v1 is built. Each of these has been flagged because the architecture needs to not preclude an answer.
 
-**11. The breakup question.**
-A couples app has to have an answer for what happens when a couple breaks up. Account split? Data export? Graceful degradation to a solo mode? This doesn't need a UI in v1, but the data model needs to not make it impossible to answer later. Worth at least a paragraph of thinking before schema finalization.
+**~~11. The breakup question.~~** ✅ Resolved 2026-04-11. Clean split with data export. Both partners can export full household data before unlink. Tasks assigned to you go with you; tasks assigned to your ex-partner stay with them; shared tasks stay with the original household. A new household is created for the departing partner. Points reset for both. No UI in v1 — unlink is a support action. Post-v1 gets a settings flow with appropriate gravity (no jokes). Architectural implication: tasks must be movable between households via `household_id` FK. Full details in [specs/multiplayer.md](../specs/multiplayer.md).
 
-**12. What about the "list person" whose partner refuses to join?**
-The Willing Partner who never accepts the invite is a real failure mode. Does the app punish the Organizer by being useless? Or does it work fine as a solo app with a persistent "invite your partner" affordance? This affects how the core loop is built. Leaning toward: the app works for one, but visibly misses its other half. The single-user state is a "waiting room," not a full product.
+**~~12. What about the "list person" whose partner refuses to join?~~** ✅ Resolved 2026-04-11. The app works for one, visibly misses its other half — but is NOT a waiting room. Full core loop works solo (create, complete, edit, delete, repeat, postpone, roll over, all views, categories, points). Filter toggle present with "Theirs" empty + warm message. Persistent quiet invite affordance. Recognition moments don't fire in solo mode. One gentle re-engage prompt after a reasonable interval, then quiet — no escalation. Post-v1: explicit solo mode toggle in settings to remove partner references entirely. Full details in [specs/multiplayer.md](../specs/multiplayer.md).
 
 **13. Billing model.**
 Free? Freemium? Per-household subscription? Stripe is in the stack; the decision of *what* to charge for is deferred. Probably a post-v1 question, but v1 architecture should not make any of those impossible.
@@ -75,7 +65,7 @@ v1 is web. A native iOS app is on the long-term roadmap but only if the web vers
 The foundation docs make "recognition" load-bearing. We have a few examples (partner completes a task you assigned, Today view summarizing the day's contributions, the two-minute-dump moment during onboarding). But the full design space of "moments of recognition" has not been explored. Worth a dedicated brainstorm session post-foundation and pre-build.
 
 **16. Tone calibration over time.**
-The voice is playful. How playful before it gets annoying on day 60? Users habituate to jokes. The app needs a plan for tone that doesn't rely on any single joke landing twice. Possibly: a rotating copy library for common surfaces so "the empty Today view" is never the same line two days in a row. Needs design attention before v1 ships but doesn't block the data model.
+The voice is playful. How playful before it gets annoying on day 60? Users habituate to jokes. The app needs a plan for tone that doesn't rely on any single joke landing twice. Possibly: a rotating copy library for common surfaces so "the empty Today view" is never the same line two days in a row. Needs design attention before v1 ships but doesn't block the data model. **Partially addressed 2026-04-11:** the views spec calls for 3–4 rotating copy variants per empty state, cycled so the same line doesn't repeat two days in a row. Full copy written during UX copy phase.
 
 ## Parking lot
 
@@ -88,9 +78,23 @@ Ideas that came up during interviews that are explicitly *not* being decided now
 - Shared grocery lists as a special task type
 - Birthday and anniversary reminders pre-loaded for the couple
 - "Surprise mode" where one partner can hide tasks from the other as part of planning a gift or event
+- **~~Smart task creation / NLP parsing~~** — elevated to critical post-v1 (see #17 below)
+- Smart point suggestions based on task history
+- Task templates (type "trash" → pre-filled task with points, category, repeat)
+- Points ledger with per-user earning/spending history
+- "Take a task" gesture — grab a task off your partner's plate with a recognition moment
+- Per-user categories (in addition to household-level)
+- Yearly repeat rule
+
+## Critical post-v1 commitments
+
+These are not in v1 scope, but are non-negotiable for the version immediately following v1. They are documented here so they don't get lost in the parking lot.
+
+**17. Smart task creation — NLP parsing from the title field.**
+When a user types "Walk daily" or "Take out trash every Tuesday for Krista" as a task title, the app should parse the title and auto-suggest repeat rules, assignee, category, time, and any other fields it can infer. The NLP parsing infrastructure already exists in the Repeat picker (`src/components/repeat-picker/parse-repeat.ts`) — the post-v1 work is to run it (and equivalent parsers for assignee, time, etc.) against the title field in real-time, auto-populating chips as keywords are detected. This is the "type naturally, the app figures it out" experience. **This must happen in the first post-v1 release.** The current UX of opening individual pickers works but is not the end state — a user should never have to manually open the repeat picker if they already typed "daily" in the title. The architecture is ready: `parseRepeatRule()` is a pure function, `TaskFormData` already has all the fields, and the chip labels already update reactively.
 
 ## Process notes (not questions, just sequencing)
 
-- **When to run the `design:design-system` skill:** *After* the tech stack is provisioned and CLI access verified, and *before* the first real component is built. Its output populates `src/styles/tokens.css`, the first theme file (`src/styles/themes/cozy.css`), and the initial base components with sibling `.md` docs. It does *not* go into `docs/`; the foundation docs stay strategic. The rules governing all of this live in `design-system/README.md`, which already exists as the contract.
+- **~~When to run the `design:design-system` skill:~~** ✅ Done 2026-04-12 (Step 5). Used `/shape` for the Today view design brief, then `/impeccable craft` for implementation. Output: `src/styles/tokens.css` (70+ semantic CSS variables), `src/styles/themes/cozy.css` (full OKLCH Cozy theme), 13 components with sibling `.md` docs, the Today view page with demo data. Fonts: Bricolage Grotesque (body) + Gabarito (display). E2e tests: 120 tests × 3 viewports = 239 passing.
 - **When to run `design:ux-copy`:** per-surface, as copy is written. Not a one-time pass.
 - **When to run `design:accessibility-review`:** before merging any new component or flow, and again before v1 ships as a full-audit pass.
