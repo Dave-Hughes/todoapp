@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { TaskListItem, type Task } from "../task-list-item/task-list-item";
@@ -53,38 +53,32 @@ export function DoneAccordion({ tasks, onUncomplete, onTap, onDelete }: DoneAcco
       </button>
 
       {/* Expandable list — uses grid-template-rows for smooth height animation */}
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            id="done-task-list"
-            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, height: "auto" }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
-            transition={
-              shouldReduceMotion
-                ? { duration: 0 }
-                : { duration: 0.3, ease: [0.25, 1, 0.5, 1] }
-            }
-            className="overflow-hidden"
-          >
-            <div className="flex flex-col divide-y divide-[var(--color-border-subtle)] rounded-[var(--radius-lg)] overflow-hidden bg-[var(--color-surface)] mt-[var(--space-1)]">
-              {tasks.map((task) => (
-                <TaskListItem
-                  key={task.id}
-                  task={task}
-                  onComplete={() => {}}
-                  onUncomplete={onUncomplete}
-                  onPostpone={() => {}}
-                  onTap={onTap}
-                  onDelete={onDelete}
-                  showAssignee={false}
-                  variant="done"
-                />
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        id="done-task-list"
+        className="grid transition-[grid-template-rows,opacity] duration-[var(--duration-normal)] ease-[var(--ease-out-quart)]"
+        style={{
+          gridTemplateRows: isOpen ? "1fr" : "0fr",
+          opacity: isOpen ? 1 : 0,
+        }}
+      >
+        <div className="overflow-hidden">
+          <div className="flex flex-col divide-y divide-[var(--color-border-subtle)] rounded-[var(--radius-lg)] overflow-hidden bg-[var(--color-surface)] mt-[var(--space-1)]">
+            {tasks.map((task) => (
+              <TaskListItem
+                key={task.id}
+                task={task}
+                onComplete={() => {}}
+                onUncomplete={onUncomplete}
+                onPostpone={() => {}}
+                onTap={onTap}
+                onDelete={onDelete}
+                showAssignee={false}
+                variant="done"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

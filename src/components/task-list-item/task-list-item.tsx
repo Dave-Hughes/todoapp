@@ -71,7 +71,6 @@ export function TaskListItem({
   showSwipeHint = false,
 }: TaskListItemProps) {
   const shouldReduceMotion = useReducedMotion();
-  const [isHovered, setIsHovered] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; right: number; openUp: boolean } | null>(null);
@@ -179,8 +178,6 @@ export function TaskListItem({
     <div
       ref={constraintsRef}
       className="relative overflow-hidden group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Swipe action backgrounds — each on its own side */}
       {!isDone && (
@@ -282,7 +279,7 @@ export function TaskListItem({
               )}
 
               {task.overdueDays && task.overdueDays > 0 && !isDone && (
-                <span className="inline-flex items-center gap-[var(--space-0-5)] px-[5px] rounded-[var(--radius-full)] bg-[var(--color-warning-subtle)] text-[11px] leading-[18px] text-[color:var(--color-warning)]">
+                <span className="inline-flex items-center gap-[var(--space-0-5)] px-[var(--space-1-5)] rounded-[var(--radius-full)] bg-[var(--color-warning-subtle)] text-[length:var(--text-xs)] leading-[var(--leading-tight)] text-[color:var(--color-warning)]">
                   <CalendarClock size={10} strokeWidth={2} aria-hidden="true" />
                   {getOverdueLabel(task.overdueDays)}
                 </span>
@@ -294,8 +291,8 @@ export function TaskListItem({
                   <span
                     className="
                       inline-flex items-center
-                      px-[5px] rounded-[var(--radius-full)]
-                      text-[11px] leading-[18px]
+                      px-[var(--space-1-5)] rounded-[var(--radius-full)]
+                      text-[length:var(--text-xs)] leading-[var(--leading-tight)]
                     "
                     style={{
                       backgroundColor: `var(--color-category-${slot}-subtle)`,
@@ -491,8 +488,8 @@ export function TaskListItem({
                         className="
                           w-full flex items-center gap-[var(--space-3)]
                           px-[var(--space-4)] py-[var(--space-2)]
-                          text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-danger)]
-                          hover:bg-[var(--color-danger-subtle)]
+                          text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-destructive)]
+                          hover:bg-[var(--color-destructive-subtle)]
                           rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
