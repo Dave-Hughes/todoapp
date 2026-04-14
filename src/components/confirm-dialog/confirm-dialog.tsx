@@ -90,7 +90,7 @@ export function ConfirmDialog({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}
-            className="absolute inset-0 bg-black/40"
+            className="absolute inset-0 bg-[var(--color-overlay)]"
             onClick={onClose}
             aria-hidden="true"
           />
