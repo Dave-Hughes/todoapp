@@ -1,3 +1,4 @@
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import {
   pgTable,
   uuid,
@@ -64,7 +65,10 @@ export const users = pgTable(
     theme: text("theme").notNull().default("cozy"),
     swipeMode: swipeModeEnum("swipe_mode").notNull().default("direct"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => ({
     clerkUserIdIdx: uniqueIndex("users_clerk_user_id_idx").on(t.clerkUserId),
@@ -85,7 +89,10 @@ export const categories = pgTable(
     position: integer("position").notNull().default(0),
     isDefault: boolean("is_default").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => ({
     householdIdx: index("categories_household_idx").on(t.householdId),
@@ -119,6 +126,7 @@ export const tasks = pgTable(
     categoryId: uuid("category_id").references(() => categories.id, {
       onDelete: "set null",
     }),
+    // No FK: holds SHARED_ASSIGNEE_SENTINEL before partner joins (see specs/multiplayer.md).
     assigneeUserId: uuid("assignee_user_id"),
     createdByUserId: uuid("created_by_user_id")
       .notNull()
@@ -130,17 +138,21 @@ export const tasks = pgTable(
     points: integer("points").notNull().default(0),
     bountyReward: text("bounty_reward"),
     repeatRule: jsonb("repeat_rule"),
-    parentTaskId: uuid("parent_task_id"),
+    parentTaskId: uuid("parent_task_id").references((): AnyPgColumn => tasks.id, {
+      onDelete: "set null",
+    }),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => ({
     householdDueIdx: index("tasks_household_due_idx").on(t.householdId, t.dueDate),
-    householdDeletedIdx: index("tasks_household_deleted_idx").on(
-      t.householdId,
-      t.deletedAt,
-    ),
+    householdActiveIdx: index("tasks_household_active_idx")
+      .on(t.householdId, t.dueDate)
+      .where(sql`${t.deletedAt} IS NULL`),
     parentIdx: index("tasks_parent_idx").on(t.parentTaskId),
   }),
 );
@@ -183,7 +195,9 @@ export const invites = pgTable("invites", {
   email: text("email"),
   token: text("token").notNull().unique(),
   status: inviteStatusEnum("status").notNull().default("pending"),
-  acceptedByUserId: uuid("accepted_by_user_id").references(() => users.id),
+  acceptedByUserId: uuid("accepted_by_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
   acceptedAt: timestamp("accepted_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -263,3 +277,5 @@ export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
 export type TaskEvent = typeof taskEvents.$inferSelect;
 export type SeededTask = typeof seededTasks.$inferSelect;
+export type Invite = typeof invites.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;

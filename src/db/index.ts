@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/neon-http";
 import * as schema from "./schema";
 
 const connectionString =
-  process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+  process.env.DATABASE_URL || process.env.DATABASE_URL_UNPOOLED;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL or DATABASE_URL_UNPOOLED must be set");
