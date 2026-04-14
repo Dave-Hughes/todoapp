@@ -1,5 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
 
+/**
+ * Skip viewport-agnostic tests on mobile projects.
+ * These tests verify behavior identical across all viewports.
+ */
+function skipUnlessDesktop(testInfo: import("@playwright/test").TestInfo) {
+  test.skip(testInfo.project.name !== "desktop-chrome",
+    "Viewport-agnostic — desktop-chrome only");
+}
+
 /*
  * Today View — E2E Tests
  * ======================
@@ -44,6 +53,8 @@ async function uncompleteTask(page: Page, taskTitle: string) {
 // ===========================================================================
 
 test.describe("Page load and structure", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("renders the Today view at root URL", async ({ page }) => {
     await page.goto("/");
     // Should have tasks visible — not a 404 or blank page
@@ -107,6 +118,7 @@ test.describe("Page load and structure", () => {
 
 test.describe("Desktop layout", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("shows sidebar on desktop", async ({ page }) => {
     await page.goto("/");
@@ -295,6 +307,8 @@ test.describe("Mobile layout", () => {
 // ===========================================================================
 
 test.describe("Filter toggle", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("renders with 'All' selected by default", async ({ page }) => {
     await page.goto("/");
     const allRadio = page.getByRole("radio", { name: "All" });
@@ -403,6 +417,8 @@ test.describe("Filter toggle", () => {
 // ===========================================================================
 
 test.describe("Task completion", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("completing a task removes it from active list", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByText("Pick up dry cleaning")).toBeVisible();
@@ -491,6 +507,8 @@ test.describe("Task completion", () => {
 // ===========================================================================
 
 test.describe("Task uncomplete", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("uncompleting a task from Done accordion restores it", async ({
     page,
   }) => {
@@ -523,6 +541,8 @@ test.describe("Task uncomplete", () => {
 // ===========================================================================
 
 test.describe("Done accordion", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("accordion starts collapsed", async ({ page }) => {
     await page.goto("/");
     const toggle = page.getByRole("button", { name: /Done/ });
@@ -581,6 +601,8 @@ test.describe("Done accordion", () => {
 // ===========================================================================
 
 test.describe("Empty states", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("caught-up state shows when all tasks are completed", async ({
     page,
   }) => {
@@ -670,6 +692,8 @@ test.describe("Empty states", () => {
 // ===========================================================================
 
 test.describe("Task creation", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("desktop: clicking Add task opens bottom sheet", async ({ page }) => {
     page.setViewportSize({ width: 1280, height: 800 });
     await page.goto("/");
@@ -811,6 +835,8 @@ test.describe("Task creation", () => {
 // ===========================================================================
 
 test.describe("Postpone", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("postponing a task removes it from the list", async ({ page }) => {
     await page.goto("/");
     // We can't easily test swipe gestures in Playwright, but we can verify
@@ -829,6 +855,7 @@ test.describe("Postpone", () => {
 
 test.describe("Roll over", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("roll over button is visible when tasks exist", async ({ page }) => {
     await page.goto("/");
@@ -874,6 +901,8 @@ test.describe("Roll over", () => {
 // ===========================================================================
 
 test.describe("Task metadata", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("tasks with time show the time", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByText("10:00 AM")).toBeVisible(); // Pick up dry cleaning
@@ -937,6 +966,8 @@ test.describe("Task metadata", () => {
 // ===========================================================================
 
 test.describe("Task section placement", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("hard-deadline tasks appear in primary section", async ({ page }) => {
     await page.goto("/");
     const primary = page.getByRole("region", { name: "Tasks due today" });
@@ -973,6 +1004,8 @@ test.describe("Task section placement", () => {
 // ===========================================================================
 
 test.describe("Accessibility", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("all interactive elements have accessible names", async ({ page }) => {
     await page.goto("/");
     // Checkboxes
@@ -1064,6 +1097,8 @@ test.describe("Accessibility", () => {
 // ===========================================================================
 
 test.describe("Keyboard navigation", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("Tab cycles through interactive elements", async ({ page }) => {
     await page.goto("/");
     // Tab should move focus to the first interactive element
@@ -1110,6 +1145,8 @@ test.describe("Keyboard navigation", () => {
 // ===========================================================================
 
 test.describe("Bottom sheet focus management", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("opening sheet moves focus to first input", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Add task" }).first().click();
@@ -1163,6 +1200,8 @@ test.describe("Bottom sheet focus management", () => {
 // ===========================================================================
 
 test.describe("Theme tokens", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("body uses CSS variable for background", async ({ page }) => {
     await page.goto("/");
     const body = page.locator("body");
@@ -1239,6 +1278,8 @@ test.describe("Theme tokens", () => {
 // ===========================================================================
 
 test.describe("Voice and tone compliance", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("no generic product language", async ({ page }) => {
     await page.goto("/");
     // Use innerText to check only rendered visible text, not script content
@@ -1312,6 +1353,8 @@ test.describe("Responsive layout transitions", () => {
 // ===========================================================================
 
 test.describe("Edge cases", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("completing and immediately uncompleting a task restores it", async ({
     page,
   }) => {
@@ -1448,6 +1491,8 @@ test.describe("Edge cases", () => {
 // ===========================================================================
 
 test.describe("Design system integrity", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("no pure black text exists in the rendered page", async ({ page }) => {
     await page.goto("/");
     // Check only elements that are visible and have actual text content.
@@ -1555,6 +1600,8 @@ test.describe("Design system integrity", () => {
 // ===========================================================================
 
 test.describe("Page header", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("displays the day name in display font", async ({ page }) => {
     await page.goto("/");
     const heading = page.getByRole("heading", { level: 1 });
@@ -1619,6 +1666,8 @@ test.describe("Page header", () => {
 // ===========================================================================
 
 test.describe("Section labels", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("primary section has 'Due today' label", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByText("Due today")).toBeVisible();
@@ -1636,6 +1685,7 @@ test.describe("Section labels", () => {
 
 test.describe("Hover actions", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
 
   test("hovering a task reveals complete and postpone buttons", async ({
     page,
@@ -1676,6 +1726,8 @@ test.describe("Hover actions", () => {
 // ===========================================================================
 
 test.describe("Undo functionality", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("postpone undo restores the task", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByText("8 tasks to do")).toBeVisible();
@@ -1737,6 +1789,8 @@ test.describe("Undo functionality", () => {
 // ===========================================================================
 
 test.describe("Metadata differentiation", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("time shows with clock icon", async ({ page }) => {
     await page.goto("/");
     // The Clock icon should be present near time text
@@ -1761,6 +1815,8 @@ test.describe("Metadata differentiation", () => {
 // ===========================================================================
 
 test.describe("Overflow menu", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("each task has an overflow menu button", async ({ page }) => {
     await page.goto("/");
     const menuButtons = page.getByRole("button", { name: /Actions for/ });
@@ -1859,6 +1915,8 @@ test.describe("Mobile roll-over", () => {
 // ===========================================================================
 
 test.describe("Completion micro-celebration", () => {
+  test.beforeEach(({}, testInfo) => { skipUnlessDesktop(testInfo); });
+
   test("checkbox shows checked state briefly before task exits", async ({
     page,
   }) => {
