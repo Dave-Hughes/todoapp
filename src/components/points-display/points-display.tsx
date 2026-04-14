@@ -11,7 +11,7 @@ export function AnimatedNumber({ value }: { value: number }) {
   const shouldReduceMotion = useReducedMotion();
   const [display, setDisplay] = useState(value);
   const prevRef = useRef(value);
-  const rafRef = useRef<number>();
+  const rafRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const from = prevRef.current;

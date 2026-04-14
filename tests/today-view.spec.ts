@@ -1532,7 +1532,7 @@ test.describe("Design system integrity", () => {
         if (
           bg === "rgb(255, 255, 255)" &&
           style.display !== "none" &&
-          el.offsetParent !== null
+          (el as HTMLElement).offsetParent !== null
         ) {
           return true;
         }
