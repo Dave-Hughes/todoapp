@@ -327,7 +327,7 @@ function NavRow({
       className={`
         group/nav relative
         flex items-center
-        h-[3.25rem]
+        h-[3.25rem] /* 52px — intentional; aligns with compact sidebar header, not mobile --header-height */
         rounded-[var(--radius-lg)]
         transition-colors duration-[var(--duration-fast)]
         outline-none
@@ -641,7 +641,7 @@ export function Sidebar({
       <div
         className="
           flex items-center
-          h-[3.25rem] shrink-0
+          h-[3.25rem] /* 52px — intentional; aligns with compact sidebar header, not mobile --header-height */ shrink-0
           border-b border-[var(--color-border-subtle)]
         "
         style={{

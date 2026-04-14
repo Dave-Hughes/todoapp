@@ -99,7 +99,8 @@ export function TaskListItem({
     // Calculate position from button — flip upward if near viewport bottom
     if (menuButtonRef.current) {
       const rect = menuButtonRef.current.getBoundingClientRect();
-      const menuHeight = 240; // approximate max menu height
+      // 4 items (44px each) + separator (8px) + padding (16px) ~ 200px. Use 240px with margin.
+      const menuHeight = 240;
       const spaceBelow = window.innerHeight - rect.bottom;
       const openUp = spaceBelow < menuHeight && rect.top > menuHeight;
 
@@ -404,6 +405,7 @@ export function TaskListItem({
                     bg-[var(--color-surface-elevated)] rounded-[var(--radius-lg)]
                     shadow-[var(--shadow-md)] border border-[var(--color-border-subtle)]
                     py-[var(--space-2)]
+                    overflow-hidden
                   "
                 >
                       <button

@@ -968,6 +968,7 @@ export function TaskSheet({
           variant="sheet"
           heightMode="fit"
           showDragHandle={true}
+          dragHandleClassName="lg:hidden"
         >
           <DatePicker
             value={date}
