@@ -9,7 +9,7 @@ import {
   type KeyboardEvent,
 } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X, MoreHorizontal, Plus, Minus } from "lucide-react";
+import { X, MoreHorizontal, Plus, Minus, Trash2 } from "lucide-react";
 import { BottomSheet } from "../bottom-sheet/bottom-sheet";
 import { TaskChip } from "../task-chip/task-chip";
 import { Popover } from "../popover/popover";
@@ -468,23 +468,44 @@ export function TaskSheet({
           <h2 className="text-[length:var(--text-sm)] font-[var(--weight-semibold)] text-[color:var(--color-text-tertiary)]">
             {mode === "edit" ? "Editing" : "New task"}
           </h2>
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="
-              p-[var(--space-2)] -mr-[var(--space-2)]
-              rounded-[var(--radius-md)]
-              text-[color:var(--color-text-tertiary)]
-              hover:text-[color:var(--color-text-secondary)]
-              hover:bg-[var(--color-surface-dim)]
-              min-h-[var(--touch-target-min)] min-w-[var(--touch-target-min)]
-              flex items-center justify-center
-              transition-colors duration-[var(--duration-instant)]
-            "
-          >
-            <X size={18} strokeWidth={2} aria-hidden="true" />
-          </button>
+          <div className="flex items-center gap-[var(--space-1)] -mr-[var(--space-2)]">
+            {mode === "edit" && onDelete && (
+              <button
+                type="button"
+                aria-label="Delete task"
+                onClick={onDelete}
+                className="
+                  p-[var(--space-2)]
+                  rounded-[var(--radius-md)]
+                  text-[color:var(--color-text-tertiary)]
+                  hover:text-[color:var(--color-destructive)]
+                  hover:bg-[var(--color-surface-dim)]
+                  min-h-[var(--touch-target-min)] min-w-[var(--touch-target-min)]
+                  flex items-center justify-center
+                  transition-colors duration-[var(--duration-instant)]
+                "
+              >
+                <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
+              </button>
+            )}
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={onClose}
+              className="
+                p-[var(--space-2)]
+                rounded-[var(--radius-md)]
+                text-[color:var(--color-text-tertiary)]
+                hover:text-[color:var(--color-text-secondary)]
+                hover:bg-[var(--color-surface-dim)]
+                min-h-[var(--touch-target-min)] min-w-[var(--touch-target-min)]
+                flex items-center justify-center
+                transition-colors duration-[var(--duration-instant)]
+              "
+            >
+              <X size={18} strokeWidth={2} aria-hidden="true" />
+            </button>
+          </div>
         </div>
 
         {/* ---- Title textarea ---- */}
@@ -935,26 +956,6 @@ export function TaskSheet({
             </button>
           </div>
 
-          {/* ---- Delete button (edit mode only) ---- */}
-          {mode === "edit" && onDelete && (
-            <div className="mt-[var(--space-3)] pt-[var(--space-3)] border-t border-[var(--color-border-subtle)]">
-              <button
-                type="button"
-                onClick={onDelete}
-                className="
-                  w-full py-[var(--space-2)]
-                  text-[length:var(--text-sm)] font-[var(--weight-medium)]
-                  text-[color:var(--color-destructive)]
-                  hover:text-[color:var(--color-destructive)] hover:bg-[var(--color-destructive-subtle,var(--color-surface-dim))]
-                  rounded-[var(--radius-md)]
-                  min-h-[var(--touch-target-min)]
-                  transition-colors duration-[var(--duration-instant)]
-                "
-              >
-                Delete
-              </button>
-            </div>
-          )}
         </form>
       </BottomSheet>
 

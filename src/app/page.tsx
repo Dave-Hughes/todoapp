@@ -514,10 +514,16 @@ export default function TodayPage() {
   const handleDeleteFromSheet = useCallback(() => {
     if (!editingTask) return;
     const taskId = editingTask.id;
+    // TODO: check if task has a repeat rule to determine isRepeating
+    const isRepeating = false; // demo data has no repeating tasks
     setSheetOpen(false);
     setEditingTask(null);
-    setDeleteDialog({ taskId, isRepeating: false });
-  }, [editingTask]);
+    if (isRepeating) {
+      setDeleteDialog({ taskId, isRepeating: true });
+    } else {
+      executeDelete(taskId);
+    }
+  }, [editingTask, executeDelete]);
 
   // Keep sheetOpenRef in sync with sheetOpen state
   useEffect(() => {

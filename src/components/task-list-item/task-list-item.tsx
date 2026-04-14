@@ -74,8 +74,7 @@ export function TaskListItem({
   const [isHovered, setIsHovered] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [deleteConfirming, setDeleteConfirming] = useState(false);
-  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number; openUp: boolean } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const constraintsRef = useRef(null);
@@ -98,12 +97,17 @@ export function TaskListItem({
   useEffect(() => {
     if (!menuOpen) return;
 
-    // Calculate position from button
+    // Calculate position from button — flip upward if near viewport bottom
     if (menuButtonRef.current) {
       const rect = menuButtonRef.current.getBoundingClientRect();
+      const menuHeight = 240; // approximate max menu height
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < menuHeight && rect.top > menuHeight;
+
       setMenuPosition({
-        top: rect.bottom + 4,
+        top: openUp ? rect.top - 4 : rect.bottom + 4,
         right: window.innerWidth - rect.right,
+        openUp,
       });
     }
 
@@ -355,10 +359,7 @@ export function TaskListItem({
               ref={menuButtonRef}
               onClick={(e) => {
                 e.stopPropagation();
-                setMenuOpen((prev) => {
-                  if (prev) setDeleteConfirming(false);
-                  return !prev;
-                });
+                setMenuOpen((prev) => !prev);
               }}
               aria-label={`Actions for "${task.title}"`}
               aria-haspopup="menu"
@@ -389,7 +390,9 @@ export function TaskListItem({
                   transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15, ease: [0.25, 1, 0.5, 1] }}
                   style={{
                     position: "fixed",
-                    top: menuPosition.top,
+                    ...(menuPosition.openUp
+                      ? { bottom: window.innerHeight - menuPosition.top }
+                      : { top: menuPosition.top }),
                     right: menuPosition.right,
                   }}
                   className="
@@ -400,53 +403,6 @@ export function TaskListItem({
                     py-[var(--space-2)]
                   "
                 >
-                  {deleteConfirming ? (
-                    <>
-                      <p className="px-[var(--space-4)] py-[var(--space-2)] text-[length:var(--text-sm)] font-[var(--weight-semibold)] text-[color:var(--color-text-primary)]">
-                        Delete it for good?
-                      </p>
-                      <button
-                        role="menuitem"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete?.(task.id);
-                          setDeleteConfirming(false);
-                          setMenuOpen(false);
-                        }}
-                        className="
-                          w-full flex items-center gap-[var(--space-3)]
-                          px-[var(--space-4)] py-[var(--space-2)]
-                          text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-danger)]
-                          hover:bg-[var(--color-danger-subtle)]
-                          rounded-[var(--radius-sm)]
-                          transition-colors duration-[var(--duration-instant)]
-                          min-h-[var(--touch-target-min)]
-                        "
-                      >
-                        <Trash2 size={15} strokeWidth={2} />
-                        Delete
-                      </button>
-                      <button
-                        role="menuitem"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfirming(false);
-                        }}
-                        className="
-                          w-full flex items-center gap-[var(--space-3)]
-                          px-[var(--space-4)] py-[var(--space-2)]
-                          text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-text-secondary)]
-                          hover:bg-[var(--color-canvas)]
-                          rounded-[var(--radius-sm)]
-                          transition-colors duration-[var(--duration-instant)]
-                          min-h-[var(--touch-target-min)]
-                        "
-                      >
-                        Never mind
-                      </button>
-                    </>
-                  ) : (
-                    <>
                       <button
                         role="menuitem"
                         onClick={(e) => {
@@ -520,7 +476,8 @@ export function TaskListItem({
                         role="menuitem"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setDeleteConfirming(true);
+                          onDelete?.(task.id);
+                          setMenuOpen(false);
                         }}
                         className="
                           w-full flex items-center gap-[var(--space-3)]
@@ -535,8 +492,6 @@ export function TaskListItem({
                         <Trash2 size={15} strokeWidth={2} />
                         Delete
                       </button>
-                    </>
-                  )}
                 </motion.div>
               )}
             </AnimatePresence>,

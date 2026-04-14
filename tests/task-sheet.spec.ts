@@ -1252,11 +1252,11 @@ test.describe("Task sheet — edit mode", () => {
     await expect(dialog.getByLabel("Task title")).toHaveValue("Pick up dry cleaning");
   });
 
-  test("edit sheet shows Delete button", async ({ page }) => {
+  test("edit sheet shows Delete icon button in header", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /Edit "Pick up dry cleaning"/ }).click();
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
-    await expect(dialog.getByRole("button", { name: "Delete" })).toBeVisible();
+    await expect(dialog.getByRole("button", { name: "Delete task" })).toBeVisible();
   });
 });
 
@@ -1279,38 +1279,13 @@ test.describe("Task sheet — delete flow", () => {
     await expect(page.getByRole("separator")).toBeVisible();
   });
 
-  test("clicking Delete in menu shows inline confirmation", async ({ page }) => {
+  test("clicking Delete in menu immediately removes task and shows undo toast", async ({ page }) => {
     await page.goto("/");
     const taskRow = page.locator('.group').first();
     await taskRow.hover();
     await page.getByRole("button", { name: /Actions for "Pick up dry cleaning"/ }).click();
     await page.getByRole("menuitem", { name: "Delete" }).click();
-    await expect(page.getByText("Delete it for good?")).toBeVisible();
-    await expect(page.getByRole("menuitem", { name: "Never mind" })).toBeVisible();
-  });
-
-  test("Never mind cancels inline delete and returns to normal menu", async ({ page }) => {
-    await page.goto("/");
-    const taskRow = page.locator('.group').first();
-    await taskRow.hover();
-    await page.getByRole("button", { name: /Actions for "Pick up dry cleaning"/ }).click();
-    await page.getByRole("menuitem", { name: "Delete" }).click();
-    await page.getByRole("menuitem", { name: "Never mind" }).click();
-    // Should be back to normal menu
-    await expect(page.getByRole("menuitem", { name: "Edit" })).toBeVisible();
-    await expect(page.getByText("Delete it for good?")).not.toBeVisible();
-  });
-
-  test("confirming Delete removes task and shows undo toast", async ({ page }) => {
-    await page.goto("/");
-    const taskRow = page.locator('.group').first();
-    await taskRow.hover();
-    await page.getByRole("button", { name: /Actions for "Pick up dry cleaning"/ }).click();
-    // Click Delete to enter confirmation
-    await page.getByRole("menuitem", { name: "Delete" }).click();
-    // Now click the destructive "Delete" in the confirmation
-    await page.getByRole("menuitem", { name: "Delete" }).click();
-    // Task should be gone
+    // Task should be gone immediately (no confirmation for non-repeating)
     await expect(page.getByText("Pick up dry cleaning")).not.toBeVisible();
     // Undo toast
     await expect(page.getByText("Deleted.")).toBeVisible();
@@ -1323,31 +1298,19 @@ test.describe("Task sheet — delete flow", () => {
     await taskRow.hover();
     await page.getByRole("button", { name: /Actions for "Pick up dry cleaning"/ }).click();
     await page.getByRole("menuitem", { name: "Delete" }).click();
-    await page.getByRole("menuitem", { name: "Delete" }).click();
     await expect(page.getByText("Pick up dry cleaning")).not.toBeVisible();
     await page.getByRole("button", { name: "Undo" }).click();
     await expect(page.getByText("Pick up dry cleaning")).toBeVisible();
   });
 
-  test("delete from edit sheet closes sheet then shows dialog", async ({ page }) => {
+  test("delete from edit sheet closes sheet and removes task directly", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: /Edit "Pick up dry cleaning"/ }).click();
     const dialog = page.getByRole("dialog", { name: "What needs doing?" });
     await expect(dialog).toBeVisible();
-    await dialog.getByRole("button", { name: "Delete" }).click();
+    await dialog.getByRole("button", { name: "Delete task" }).click();
+    // Sheet should close and task should be gone (no confirmation for non-repeating)
     await expect(dialog).not.toBeVisible();
-    const confirmDialog = page.getByRole("alertdialog");
-    await expect(confirmDialog).toBeVisible();
-    await expect(confirmDialog.getByText("Delete it for good?")).toBeVisible();
-  });
-
-  test("confirming delete from dialog removes task", async ({ page }) => {
-    await page.goto("/");
-    await page.getByRole("button", { name: /Edit "Pick up dry cleaning"/ }).click();
-    const sheet = page.getByRole("dialog", { name: "What needs doing?" });
-    await sheet.getByRole("button", { name: "Delete" }).click();
-    const confirmDialog = page.getByRole("alertdialog");
-    await confirmDialog.getByRole("button", { name: "Delete" }).click();
     await expect(page.getByText("Pick up dry cleaning")).not.toBeVisible();
     await expect(page.getByText("Deleted.")).toBeVisible();
   });
