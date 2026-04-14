@@ -78,7 +78,7 @@ Ideas that came up during interviews that are explicitly *not* being decided now
 - Shared grocery lists as a special task type
 - Birthday and anniversary reminders pre-loaded for the couple
 - "Surprise mode" where one partner can hide tasks from the other as part of planning a gift or event
-- Smart task creation / NLP parsing ("Take out trash daily Krista" → auto-set repeat, assignee, category)
+- **~~Smart task creation / NLP parsing~~** — elevated to critical post-v1 (see #17 below)
 - Smart point suggestions based on task history
 - Task templates (type "trash" → pre-filled task with points, category, repeat)
 - Points ledger with per-user earning/spending history
@@ -86,8 +86,15 @@ Ideas that came up during interviews that are explicitly *not* being decided now
 - Per-user categories (in addition to household-level)
 - Yearly repeat rule
 
+## Critical post-v1 commitments
+
+These are not in v1 scope, but are non-negotiable for the version immediately following v1. They are documented here so they don't get lost in the parking lot.
+
+**17. Smart task creation — NLP parsing from the title field.**
+When a user types "Walk daily" or "Take out trash every Tuesday for Krista" as a task title, the app should parse the title and auto-suggest repeat rules, assignee, category, time, and any other fields it can infer. The NLP parsing infrastructure already exists in the Repeat picker (`src/components/repeat-picker/parse-repeat.ts`) — the post-v1 work is to run it (and equivalent parsers for assignee, time, etc.) against the title field in real-time, auto-populating chips as keywords are detected. This is the "type naturally, the app figures it out" experience. **This must happen in the first post-v1 release.** The current UX of opening individual pickers works but is not the end state — a user should never have to manually open the repeat picker if they already typed "daily" in the title. The architecture is ready: `parseRepeatRule()` is a pure function, `TaskFormData` already has all the fields, and the chip labels already update reactively.
+
 ## Process notes (not questions, just sequencing)
 
-- **When to run the `design:design-system` skill:** *After* the tech stack is provisioned and CLI access verified, and *before* the first real component is built. Its output populates `src/styles/tokens.css`, the first theme file (`src/styles/themes/cozy.css`), and the initial base components with sibling `.md` docs. It does *not* go into `docs/`; the foundation docs stay strategic. The rules governing all of this live in `design-system/README.md`, which already exists as the contract.
+- **~~When to run the `design:design-system` skill:~~** ✅ Done 2026-04-12 (Step 5). Used `/shape` for the Today view design brief, then `/impeccable craft` for implementation. Output: `src/styles/tokens.css` (70+ semantic CSS variables), `src/styles/themes/cozy.css` (full OKLCH Cozy theme), 13 components with sibling `.md` docs, the Today view page with demo data. Fonts: Bricolage Grotesque (body) + Gabarito (display). E2e tests: 120 tests × 3 viewports = 239 passing.
 - **When to run `design:ux-copy`:** per-surface, as copy is written. Not a one-time pass.
 - **When to run `design:accessibility-review`:** before merging any new component or flow, and again before v1 ships as a full-audit pass.
