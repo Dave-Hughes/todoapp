@@ -47,7 +47,7 @@ Full rationale for every choice: [docs/tech-stack.md](docs/tech-stack.md).
    - ✅ Post-Phase 2 audit: extracted SegmentedControl, fixed touch targets, grid-row animation, responsive picker widths
    - ✅ Phase 3: Repeat picker with NLP (presets + natural language input, client-side parser)
    - ✅ Phase 4: Edit mode + Delete (edit sheet, inline delete confirmation, ConfirmDialog, undo toast)
-10. ✅ Playwright e2e tests (646 passed, 5 skipped across 3 viewports)
+10. ✅ Playwright e2e tests (274 runs after optimization, 0 failures)
 11. Keep updating markdown after every major change
 
 ## Foundation docs (read before making decisions)
@@ -111,13 +111,14 @@ ToDoApp/
     │   ├── app-shell/         ← responsive layout frame
     │   ├── avatar/            ← initial-based avatar with notification dot
     │   ├── bottom-sheet/      ← draggable sheet with focus trap
-    │   ├── confirm-dialog/    ← centered modal for delete confirmations
     │   ├── bottom-tabs/       ← mobile tab bar (Today/Week/Month/Settings)
     │   ├── checkbox/          ← animated circle checkbox
+    │   ├── confirm-dialog/    ← centered modal for delete confirmations
     │   ├── done-accordion/    ← collapsible completed tasks
     │   ├── empty-state/       ← two variants (no-tasks, caught-up) with rotating copy
     │   ├── fab/               ← floating action button (mobile)
-    │   ├── filter-toggle/     ← thin wrapper around SegmentedControl for Mine/Theirs/All
+    │   ├── filter-toggle/     ← thin wrapper around SegmentedControl for Mine/Partner's/All
+    │   ├── icon-button/       ← compact icon-only button with variants (extracted pattern)
     │   ├── mobile-header/     ← compact header with points
     │   ├── popover/           ← portal-rendered click-triggered popover (chip pickers)
     │   ├── repeat-picker/    ← presets + NLP input for recurrence rules (3 files: tsx, parse, format)
@@ -131,7 +132,8 @@ ToDoApp/
     │   ├── task-sheet/        ← task creation sheet with inline pickers + expanded section
     │   ├── toast/             ← timed notification with undo
     │   └── tooltip/           ← portal-rendered tooltip with shortcut hints
-    ├── lib/                   ← shared utilities, Drizzle client, etc. (TBD)
+    ├── lib/
+    │   └── motion.ts          ← shared Framer Motion easing curves and transition presets
     ├── db/                    ← Drizzle schema and migrations (TBD)
     └── styles/
         ├── tokens.css         ← token contract (70+ CSS variables)
@@ -186,17 +188,17 @@ npm run lint                   # ESLint
 npm run format                 # Prettier (if configured)
 ```
 
-## Test coverage (as of Phase 4)
+## Test coverage (as of Phase 4 + optimization)
 
-**293 passed, 4 skipped, 0 failed** on task-sheet across 3 viewports (desktop Chrome, Pixel 7, iPhone 14). ~743 total across both test files.
+**274 test runs, 0 failures.** Viewport-agnostic tests run desktop-only; mobile-specific tests run on all 3 viewports (desktop Chrome, Pixel 7, iPhone 14).
 
 Test files:
-- `tests/today-view.spec.ts` — 150 tests × 3 viewports (Today view, layout, filter, tasks, empty states, etc.)
-- `tests/task-sheet.spec.ts` — ~99 tests × 3 viewports (sheet open/close, title input, all 5 chip pickers, repeat picker with NLP, expanded section, submit with picker values, reset on reopen, accessibility, edit mode, delete flow)
+- `tests/today-view.spec.ts` — 150 unique tests (11 mobile-specific × 3 viewports + 139 desktop-only)
+- `tests/task-sheet.spec.ts` — 92 unique tests (5 mobile-specific × 3 viewports + 87 desktop-only)
 
 Covers (today-view): page load, page header, desktop layout (sidebar), mobile layout (header, tabs, FAB), filter toggle, task completion, task uncomplete, Done accordion, empty states, task creation, roll over, postpone, task metadata, section labels, hover actions, undo, overflow menu, mobile roll-over, completion micro-celebration, partner points, accessibility, keyboard nav, focus trap, theme tokens, voice and tone, responsive, edge cases.
 
-Covers (task-sheet): sheet open/close (Cmd+Enter, FAB, toolbar button), title field (autofocus, placeholder, multi-line, keyboard shortcuts), chip row (defaults, horizontal scroll, fade mask), CTA states (enabled, disabled, submitting, error), date picker (popover open, preset selection, calendar grid, arrow-key nav, Escape focus return, mobile BottomSheet divergence), assignee picker (open, select partner/shared, Escape focus return, keyboard selection), category picker (open, "File it where?" header, select category, Escape focus return), repeat picker (chip enabled, popover open, all 4 presets commit + update chip, NLP input for single day/multi-day/interval/monthly, real-time preview, parse error on unparseable input, clear rule, Escape close, focus return, aria-expanded, keyboard nav between presets, value reset on reopen, input pre-population for custom rules), expanded section (More toggle, time stepper increment/clear, flexible toggle, notes field + placeholder, points auto-fill + manual edit), cross-cutting (submit with picker values, flexible tasks in correct section, picker reset on reopen), edit mode (tap-to-edit, overflow menu edit, pre-populated fields, header/CTA variants, auto-expand More, save updates list, close without saving preserves task), delete flow (inline menu confirmation, "Never mind" cancel, delete removes task, undo toast, undo restores task, delete from edit sheet via dialog, done tasks menu with disabled items).
+Covers (task-sheet): sheet open/close (Cmd+Enter, FAB, toolbar button), title field (autofocus, placeholder, multi-line, keyboard shortcuts), chip row (defaults, horizontal scroll, fade mask), CTA states (enabled, disabled, submitting, error), date picker (popover open, preset selection, calendar grid, arrow-key nav, Escape focus return, mobile BottomSheet divergence), assignee picker (open, select partner/shared, keyboard selection), category picker (open, "File it where?" header, select category), repeat picker (chip enabled, popover open, all 4 presets commit + update chip, NLP input for single day/multi-day/interval/monthly, real-time preview, parse error on unparseable input, clear rule, Escape close, keyboard nav between presets, value reset on reopen, input pre-population for custom rules), expanded section (Details toggle, time stepper increment/clear, flexible toggle, notes field + placeholder, points auto-fill + manual edit), cross-cutting (submit with picker values, flexible tasks in correct section, picker reset on reopen), edit mode (tap-to-edit, overflow menu edit, pre-populated fields, header/CTA variants, auto-expand Details, save updates list, close without saving preserves task), delete flow (direct delete from menu, undo toast, undo restores task, delete from edit sheet header icon, done tasks menu with disabled items).
 
 ## Things that must not be re-litigated
 
