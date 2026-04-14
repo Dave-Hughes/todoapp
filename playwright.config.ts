@@ -1,4 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import { config } from "dotenv";
+
+config({ path: ".env.local" });
+config({ path: ".env.test", override: true });
+
+const STORAGE = "tests/.auth/user.json";
 
 export default defineConfig({
   testDir: "./tests",
@@ -16,16 +22,23 @@ export default defineConfig({
 
   projects: [
     {
+      name: "setup",
+      testMatch: /auth\.setup\.ts/,
+    },
+    {
       name: "desktop-chrome",
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], storageState: STORAGE },
+      dependencies: ["setup"],
     },
     {
       name: "mobile-chrome",
-      use: { ...devices["Pixel 7"] },
+      use: { ...devices["Pixel 7"], storageState: STORAGE },
+      dependencies: ["setup"],
     },
     {
       name: "mobile-safari",
-      use: { ...devices["iPhone 14"] },
+      use: { ...devices["iPhone 14"], storageState: STORAGE },
+      dependencies: ["setup"],
     },
   ],
 

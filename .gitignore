@@ -50,6 +50,9 @@ next-env.d.ts
 /playwright/.cache/
 /playwright/.auth/
 
+# Playwright storage state
+tests/.auth/
+
 # Editor / session state
 .obsidian/workspace.json
 .claude/
