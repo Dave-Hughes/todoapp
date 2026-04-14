@@ -626,9 +626,7 @@ export function Sidebar({
           : "var(--sidebar-width-peek)",
       }}
       transition={widthTransition}
-      onMouseEnter={() => {
-        if (window.matchMedia('(hover: hover)').matches) setIsHovering(true);
-      }}
+      onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       onFocus={() => setIsHovering(true)}
       onBlur={(e) => {
