@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowRight, Plus } from "lucide-react";
+import { EASE_OUT_QUART } from "../lib/motion";
 import { AppShell } from "../components/app-shell/app-shell";
 import { FilterToggle, type FilterValue } from "../components/filter-toggle/filter-toggle";
 import { TaskListItem, type Task } from "../components/task-list-item/task-list-item";
@@ -562,8 +563,6 @@ export default function TodayPage() {
     },
   };
 
-  const easeOutQuart: [number, number, number, number] = [0.25, 1, 0.5, 1];
-
   const itemVariants = {
     hidden: shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 6 },
     visible: shouldReduceMotion
@@ -571,7 +570,7 @@ export default function TodayPage() {
       : {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.3, ease: easeOutQuart },
+          transition: { duration: 0.3, ease: EASE_OUT_QUART },
         },
   };
 

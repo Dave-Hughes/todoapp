@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
+import { EASE_OUT_QUART } from "../../lib/motion";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { TaskListItem, type Task } from "../task-list-item/task-list-item";
@@ -41,7 +42,7 @@ export function DoneAccordion({ tasks, onUncomplete, onTap, onDelete }: DoneAcco
           transition={
             shouldReduceMotion
               ? { duration: 0 }
-              : { duration: 0.2, ease: [0.25, 1, 0.5, 1] }
+              : { duration: 0.2, ease: EASE_OUT_QUART }
           }
           className="inline-flex"
         >

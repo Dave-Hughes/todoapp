@@ -10,6 +10,7 @@ import {
 } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { X, ChevronDown, ChevronUp, Plus, Minus, Trash2 } from "lucide-react";
+import { IconButton } from "../icon-button/icon-button";
 import { BottomSheet } from "../bottom-sheet/bottom-sheet";
 import { TaskChip } from "../task-chip/task-chip";
 import { Popover } from "../popover/popover";
@@ -470,41 +471,18 @@ export function TaskSheet({
           </h2>
           <div className="flex items-center gap-[var(--space-1)] -mr-[var(--space-2)]">
             {mode === "edit" && onDelete && (
-              <button
-                type="button"
-                aria-label="Delete task"
+              <IconButton
+                icon={<Trash2 size={18} strokeWidth={2} />}
+                label="Delete task"
+                variant="destructive"
                 onClick={onDelete}
-                className="
-                  p-[var(--space-2)]
-                  rounded-[var(--radius-md)]
-                  text-[color:var(--color-text-tertiary)]
-                  hover:text-[color:var(--color-destructive)]
-                  hover:bg-[var(--color-surface-dim)]
-                  min-h-[var(--touch-target-min)] min-w-[var(--touch-target-min)]
-                  flex items-center justify-center
-                  transition-colors duration-[var(--duration-instant)]
-                "
-              >
-                <Trash2 size={18} strokeWidth={2} aria-hidden="true" />
-              </button>
+              />
             )}
-            <button
-              type="button"
-              aria-label="Close"
+            <IconButton
+              icon={<X size={18} strokeWidth={2} />}
+              label="Close"
               onClick={onClose}
-              className="
-                p-[var(--space-2)]
-                rounded-[var(--radius-md)]
-                text-[color:var(--color-text-tertiary)]
-                hover:text-[color:var(--color-text-secondary)]
-                hover:bg-[var(--color-surface-dim)]
-                min-h-[var(--touch-target-min)] min-w-[var(--touch-target-min)]
-                flex items-center justify-center
-                transition-colors duration-[var(--duration-instant)]
-              "
-            >
-              <X size={18} strokeWidth={2} aria-hidden="true" />
-            </button>
+            />
           </div>
         </div>
 

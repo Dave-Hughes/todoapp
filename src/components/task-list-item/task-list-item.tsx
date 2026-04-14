@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, useReducedMotion, type PanInfo } from "framer-motion";
+import { EASE_OUT_QUART } from "../../lib/motion";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Clock, CalendarClock, Check, ArrowRight, MoreVertical, Pencil, Trash2 } from "lucide-react";
@@ -217,7 +218,7 @@ export function TaskListItem({
               transition: {
                 x: {
                   duration: 0.7,
-                  ease: [0.25, 1, 0.5, 1],
+                  ease: EASE_OUT_QUART,
                   times: [0, 0.4, 1],
                 },
               },
@@ -391,7 +392,7 @@ export function TaskListItem({
                   initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95 }}
-                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15, ease: [0.25, 1, 0.5, 1] }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15, ease: EASE_OUT_QUART }}
                   style={{
                     position: "fixed",
                     ...(menuPosition.openUp

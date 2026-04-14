@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { EASE_OUT_QUART } from "../../lib/motion";
 
 interface CheckboxProps {
   checked: boolean;
@@ -10,8 +11,6 @@ interface CheckboxProps {
   label: string;
   className?: string;
 }
-
-const easeOutQuart: [number, number, number, number] = [0.25, 1, 0.5, 1];
 
 /**
  * Checkbox: 18px visual circle with 44px invisible touch target via ::before pseudo.
@@ -72,7 +71,7 @@ export function Checkbox({
             transition={
               shouldReduceMotion
                 ? { duration: 0 }
-                : { duration: 0.4, ease: easeOutQuart }
+                : { duration: 0.4, ease: EASE_OUT_QUART }
             }
           />
         )}
@@ -90,7 +89,7 @@ export function Checkbox({
         transition={
           shouldReduceMotion
             ? { duration: 0 }
-            : { duration: 0.3, ease: easeOutQuart }
+            : { duration: 0.3, ease: EASE_OUT_QUART }
         }
       />
 
@@ -117,7 +116,7 @@ export function Checkbox({
               : {
                   pathLength: {
                     duration: 0.25,
-                    ease: easeOutQuart,
+                    ease: EASE_OUT_QUART,
                   },
                   opacity: { duration: 0.1 },
                 }
