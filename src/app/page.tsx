@@ -2,133 +2,52 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ArrowRight, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { EASE_OUT_QUART } from "../lib/motion";
 import { AppShell } from "../components/app-shell/app-shell";
 import { FilterToggle, type FilterValue } from "../components/filter-toggle/filter-toggle";
-import { TaskListItem, type Task } from "../components/task-list-item/task-list-item";
+import { TaskListItem, type Task as UITask } from "../components/task-list-item/task-list-item";
 import { DoneAccordion } from "../components/done-accordion/done-accordion";
 import { EmptyState } from "../components/empty-state/empty-state";
 import { Fab } from "../components/fab/fab";
 import { TaskSheet, type TaskFormData } from "../components/task-sheet/task-sheet";
 import { Toast } from "../components/toast/toast";
 import { ConfirmDialog } from "../components/confirm-dialog/confirm-dialog";
-
-/* ================================================================
- * DEMO DATA — replaced by real data fetching in the walking skeleton
- * ================================================================ */
-
-const DEMO_USER = "Dave";
-const DEMO_PARTNER = "Krista";
-
-const DEMO_TASKS: Task[] = [
-  {
-    id: "1",
-    title: "Pick up dry cleaning",
-    dueTime: "10:00 AM",
-    flexible: false,
-    assigneeName: "Dave",
-    categoryName: "Errands",
-    createdByName: "Krista",
-  },
-  {
-    id: "2",
-    title: "Schedule dentist appointment",
-    flexible: false,
-    assigneeName: "Dave",
-    categoryName: "Health",
-    createdByName: "Dave",
-    overdueDays: 1,
-  },
-  {
-    id: "3",
-    title: "Take out recycling",
-    dueTime: "7:00 PM",
-    flexible: false,
-    assigneeName: "Krista",
-    categoryName: "Home",
-    createdByName: "Dave",
-  },
-  {
-    id: "4",
-    title: "Pay electric bill",
-    flexible: false,
-    assigneeName: undefined,
-    categoryName: "Bills",
-    createdByName: "Dave",
-  },
-  {
-    id: "5",
-    title: "Return Amazon package",
-    flexible: false,
-    assigneeName: "Dave",
-    categoryName: "Errands",
-    createdByName: "Krista",
-  },
-  {
-    id: "6",
-    title: "Organize junk drawer",
-    flexible: true,
-    assigneeName: undefined,
-    categoryName: "Home",
-    createdByName: "Krista",
-  },
-  {
-    id: "7",
-    title: "Research new vacuum",
-    flexible: true,
-    assigneeName: "Dave",
-    createdByName: "Dave",
-  },
-  {
-    id: "8",
-    title: "Wipe down kitchen counters",
-    flexible: true,
-    assigneeName: "Krista",
-    categoryName: "Home",
-    createdByName: "Krista",
-  },
-];
-
-const DEMO_DONE: Task[] = [
-  {
-    id: "d1",
-    title: "Take out trash",
-    flexible: false,
-    completedAt: new Date().toISOString(),
-    completedByName: "Dave",
-    createdByName: "Krista",
-  },
-  {
-    id: "d2",
-    title: "Unload dishwasher",
-    flexible: false,
-    completedAt: new Date().toISOString(),
-    completedByName: "Krista",
-    createdByName: "Krista",
-  },
-  {
-    id: "d3",
-    title: "Water the plants",
-    flexible: true,
-    completedAt: new Date().toISOString(),
-    completedByName: "Dave",
-    createdByName: "Dave",
-  },
-];
+import type { Task as DBTask } from "@/db/schema";
+import { useMe } from "@/lib/hooks/use-me";
+import { useCategories } from "@/lib/hooks/use-categories";
+import {
+  useTasks,
+  useCreateTask,
+  useUpdateTask,
+  useDeleteTask,
+  useCompleteTask,
+  useUncompleteTask,
+} from "@/lib/hooks/use-tasks";
+import { SHARED_ASSIGNEE_SENTINEL } from "@/lib/constants";
+import type { AssigneeValue } from "../components/assignee-picker/assignee-picker";
+import type { CategoryValue } from "../components/category-picker/category-picker";
+import type { RepeatRule } from "../components/repeat-picker/parse-repeat";
+import type { CreateTaskInput } from "@/lib/api/validators";
 
 /* ================================================================
  * Helpers
  * ================================================================ */
 
-function formatTodayDate(): { dayName: string; fullDate: string } {
+function formatTodayDate(): { dayName: string; fullDate: string; iso: string } {
   const now = new Date();
-  const dayName = now.toLocaleDateString("en-US", { weekday: "long" });
-  const fullDate = now.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-  });
-  return { dayName, fullDate };
+  return {
+    dayName: now.toLocaleDateString("en-US", { weekday: "long" }),
+    fullDate: now.toLocaleDateString("en-US", { month: "long", day: "numeric" }),
+    iso: now.toISOString().split("T")[0],
+  };
+}
+
+/** Returns positive number of days task is overdue (past due), or undefined if not. */
+function daysBetween(isoA: string, isoB: string): number {
+  const a = Date.parse(`${isoA}T00:00:00Z`);
+  const b = Date.parse(`${isoB}T00:00:00Z`);
+  return Math.round((a - b) / 86_400_000);
 }
 
 /**
@@ -137,11 +56,13 @@ function formatTodayDate(): { dayName: string; fullDate: string } {
  */
 function hashString(s: string): number {
   let hash = 0;
-  for (let i = 0; i < s.length; i++) {
-    hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0;
-  }
+  for (let i = 0; i < s.length; i++) hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0;
   return Math.abs(hash);
 }
+
+/* ================================================================
+ * Completion copy
+ * ================================================================ */
 
 const COMPLETION_COPY_GENERAL = [
   "Nice. One less thing.",
@@ -150,46 +71,113 @@ const COMPLETION_COPY_GENERAL = [
   "Handled.",
   "One down.",
 ];
-
 const COMPLETION_COPY_PARTNER_CREATED = [
   "{partner} asked, you delivered.",
   "That's off {partner}'s mind now.",
   "{partner}'s gonna notice that.",
 ];
-
 const COMPLETION_COPY_SELF_CREATED = [
   "Handled your own business.",
   "Self-assigned and self-handled.",
 ];
 
-function getCompletionCopy(task: Task, currentUser: string): string {
-  const isPartnerCreated = task.createdByName && task.createdByName !== currentUser;
-  const isSelfCreated = task.createdByName === currentUser;
-
+function getCompletionCopy(task: DBTask, myUserId: string, partnerName: string | null): string {
+  const seed = hashString(task.id);
+  const isPartnerCreated = task.createdByUserId !== myUserId && partnerName;
+  const isSelfCreated = task.createdByUserId === myUserId;
   if (isPartnerCreated) {
-    const pool = COMPLETION_COPY_PARTNER_CREATED;
-    const msg = pool[hashString(task.id) % pool.length];
-    return msg.replace("{partner}", task.createdByName);
+    const msg = COMPLETION_COPY_PARTNER_CREATED[seed % COMPLETION_COPY_PARTNER_CREATED.length];
+    return msg.replace("{partner}", partnerName);
   }
-
-  if (isSelfCreated) {
-    const pool = COMPLETION_COPY_SELF_CREATED;
-    return pool[hashString(task.id) % pool.length];
-  }
-
-  return COMPLETION_COPY_GENERAL[hashString(task.id) % COMPLETION_COPY_GENERAL.length];
+  if (isSelfCreated) return COMPLETION_COPY_SELF_CREATED[seed % COMPLETION_COPY_SELF_CREATED.length];
+  return COMPLETION_COPY_GENERAL[seed % COMPLETION_COPY_GENERAL.length];
 }
 
-function taskToFormData(task: Task): Partial<TaskFormData> {
-  let assignee: import("../components/assignee-picker/assignee-picker").AssigneeValue = "shared";
-  if (task.assigneeName === DEMO_USER) assignee = "me";
-  else if (task.assigneeName === DEMO_PARTNER) assignee = "partner";
+/* ================================================================
+ * DB → UI task projection
+ * ================================================================ */
+
+function toUITask(
+  t: DBTask,
+  me: { id: string; displayName: string },
+  partner: { id: string; displayName: string } | null,
+  categoryNameById: Map<string, string>,
+  todayIso: string,
+): UITask {
+  const assigneeName =
+    t.assigneeUserId === me.id
+      ? me.displayName
+      : t.assigneeUserId === partner?.id
+        ? partner.displayName
+        : t.assigneeUserId === SHARED_ASSIGNEE_SENTINEL
+          ? partner?.displayName ?? "Partner"
+          : undefined;
+
+  const completedByName =
+    t.completedByUserId === me.id
+      ? me.displayName
+      : t.completedByUserId === partner?.id
+        ? partner?.displayName
+        : undefined;
+
+  const createdByName =
+    t.createdByUserId === me.id
+      ? me.displayName
+      : t.createdByUserId === partner?.id
+        ? partner?.displayName
+        : undefined;
+
+  const overdueDays = (() => {
+    if (t.completedAt) return undefined;
+    const diff = daysBetween(todayIso, t.dueDate);
+    return diff > 0 ? diff : undefined;
+  })();
+
+  return {
+    id: t.id,
+    title: t.title,
+    dueTime: t.dueTime ?? undefined,
+    flexible: t.flexible,
+    assigneeName,
+    categoryName: t.categoryId ? categoryNameById.get(t.categoryId) : undefined,
+    createdByName: createdByName ?? "",
+    completedAt: t.completedAt ? t.completedAt.toString() : undefined,
+    completedByName,
+    overdueDays,
+  };
+}
+
+/* ================================================================
+ * UITask → TaskFormData (for edit mode pre-population)
+ * ================================================================ */
+
+function uiTaskToFormData(
+  task: UITask,
+  me: { displayName: string },
+  partner: { displayName: string } | null,
+  categoryIdByName: Map<string, string>,
+  todayIso: string,
+): Partial<TaskFormData> {
+  let assignee: AssigneeValue = "me";
+  if (task.assigneeName === me.displayName) {
+    assignee = "me";
+  } else if (partner && task.assigneeName === partner.displayName) {
+    assignee = "partner";
+  } else {
+    assignee = "shared";
+  }
+
+  // Find a valid CategoryValue — fall back to "Uncategorized" if not found
+  const category: CategoryValue =
+    (task.categoryName && categoryIdByName.has(task.categoryName)
+      ? task.categoryName
+      : "Uncategorized") as CategoryValue;
 
   return {
     title: task.title,
-    date: new Date().toISOString().split("T")[0],
+    date: todayIso,
     assignee,
-    category: (task.categoryName ?? "Uncategorized") as import("../components/category-picker/category-picker").CategoryValue,
+    category,
     repeatRule: null,
     time: task.dueTime ?? null,
     flexible: task.flexible,
@@ -198,394 +186,333 @@ function taskToFormData(task: Task): Partial<TaskFormData> {
   };
 }
 
-/* ================================================================ */
+/* ================================================================
+ * RepeatRule conversion: front-end camelCase → API snake_case
+ *
+ * parse-repeat.ts uses `dayOfMonth` but the API validator expects `day_of_month`.
+ * ================================================================ */
+
+function toApiRepeatRule(rule: RepeatRule | null): CreateTaskInput["repeatRule"] {
+  if (!rule) return null;
+  if (rule.type === "monthly") {
+    return { type: "monthly", interval: rule.interval, day_of_month: rule.dayOfMonth };
+  }
+  return rule;
+}
+
+/* ================================================================
+ * FormData → API create input
+ * ================================================================ */
+
+function formDataToCreateInput(
+  data: TaskFormData,
+  me: { id: string },
+  partner: { id: string } | null,
+  categoryIdByName: Map<string, string>,
+  todayIso: string,
+): CreateTaskInput {
+  const assigneeUserId =
+    data.assignee === "me"
+      ? me.id
+      : data.assignee === "partner"
+        ? partner?.id ?? SHARED_ASSIGNEE_SENTINEL
+        : null;
+
+  return {
+    title: data.title.trim(),
+    notes: data.notes || null,
+    dueDate: data.date || todayIso,
+    dueTime: data.time || null,
+    flexible: data.flexible,
+    categoryId: data.category && data.category !== "Uncategorized"
+      ? categoryIdByName.get(data.category) ?? null
+      : null,
+    assigneeUserId,
+    points: data.points ?? 0,
+    repeatRule: toApiRepeatRule(data.repeatRule),
+  };
+}
+
+/* ================================================================
+ * Page component
+ * ================================================================ */
 
 export default function TodayPage() {
   const shouldReduceMotion = useReducedMotion();
-  const { dayName, fullDate } = formatTodayDate();
+  const { dayName, fullDate, iso: todayIso } = formatTodayDate();
 
-  // State
+  // Server data
+  const { data: meData } = useMe();
+  const { data: cats = [] } = useCategories();
+  const { data: dbTasks = [], isLoading } = useTasks();
+  const createTask = useCreateTask();
+  const updateTask = useUpdateTask();
+  const deleteTask = useDeleteTask();
+  const completeTask = useCompleteTask();
+  const uncompleteTask = useUncompleteTask();
+
+  const me = meData?.me ?? null;
+  const partner = meData?.partner ?? null;
+
+  // Category lookup maps
+  const categoryNameById = useMemo(
+    () => new Map(cats.map((c) => [c.id, c.name])),
+    [cats],
+  );
+  const categoryIdByName = useMemo(
+    () => new Map(cats.map((c) => [c.name, c.id])),
+    [cats],
+  );
+
+  // Only show tasks for today (or past-due carry-forward)
+  const visibleDbTasks = useMemo(() => {
+    return dbTasks.filter((t) => {
+      if (t.flexible) return daysBetween(todayIso, t.dueDate) >= 0; // today or past
+      return t.dueDate === todayIso || daysBetween(todayIso, t.dueDate) > 0;
+    });
+  }, [dbTasks, todayIso]);
+
+  // Project DB tasks to UI tasks
+  const uiTasks = useMemo(() => {
+    if (!me) return [] as UITask[];
+    return visibleDbTasks.map((t) => toUITask(t, me, partner, categoryNameById, todayIso));
+  }, [visibleDbTasks, me, partner, categoryNameById, todayIso]);
+
+  const active = uiTasks.filter((t) => !t.completedAt);
+  const done = uiTasks.filter((t) => !!t.completedAt);
+
+  // UI state
   const [filter, setFilter] = useState<FilterValue>("all");
-  const [tasks, setTasks] = useState<Task[]>(DEMO_TASKS);
-  const [doneTasks, setDoneTasks] = useState<Task[]>(DEMO_DONE);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<UITask | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     action?: { label: string; onClick: () => void };
     duration?: number;
   } | null>(null);
-  const [userPoints, setUserPoints] = useState(245);
-  const [userPointsToday, setUserPointsToday] = useState(15);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [deleteDialog, setDeleteDialog] = useState<{
-    taskId: string;
-    isRepeating: boolean;
-  } | null>(null);
-
-  // Swipe hint — show once on initial page load only
+  const [deleteDialog, setDeleteDialog] = useState<{ taskId: string; isRepeating: boolean } | null>(
+    null,
+  );
   const swipeHintShown = useRef(false);
-
-  // Ref mirror of sheetOpen — used in handleCreateTask to decide toast vs inline error.
   const sheetOpenRef = useRef(sheetOpen);
 
-  // Undo refs — store last-removed state for recovery
-  const lastCompletedRef = useRef<Task | null>(null);
-  const lastPostponedRef = useRef<Task | null>(null);
-  const lastRolledRef = useRef<Task[]>([]);
-
-  // Filter logic
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
+  // Filter active/done tasks
+  const filteredActive = useMemo(() => {
+    if (!me) return active;
+    return active.filter((t) => {
       if (filter === "all") return true;
-      if (filter === "mine") {
-        return task.assigneeName === DEMO_USER || !task.assigneeName;
-      }
-      if (filter === "theirs") {
-        return task.assigneeName === DEMO_PARTNER || !task.assigneeName;
-      }
-      return true;
+      if (filter === "mine") return t.assigneeName === me.displayName || !t.assigneeName;
+      return t.assigneeName === partner?.displayName || !t.assigneeName;
     });
-  }, [tasks, filter]);
+  }, [active, filter, me, partner]);
 
   const filteredDone = useMemo(() => {
-    return doneTasks.filter((task) => {
+    if (!me) return done;
+    return done.filter((t) => {
       if (filter === "all") return true;
-      if (filter === "mine") {
-        return task.completedByName === DEMO_USER || !task.assigneeName;
-      }
-      if (filter === "theirs") {
-        return task.completedByName === DEMO_PARTNER || !task.assigneeName;
-      }
-      return true;
+      if (filter === "mine") return t.completedByName === me.displayName;
+      return t.completedByName === partner?.displayName;
     });
-  }, [doneTasks, filter]);
+  }, [done, filter, me, partner]);
 
-  // Split into primary (hard-deadline) and secondary (flexible)
-  const primaryTasks = filteredTasks.filter((t) => !t.flexible);
-  const secondaryTasks = filteredTasks.filter((t) => t.flexible);
-  const totalActive = filteredTasks.length;
+  // Split active into hard-deadline (primary) and flexible (secondary)
+  const primary = filteredActive.filter((t) => !t.flexible);
+  const secondary = filteredActive.filter((t) => t.flexible);
 
-  const isEmpty = tasks.length === 0 && doneTasks.length === 0;
-  const isCaughtUp =
-    !isEmpty && filteredTasks.length === 0 && filteredDone.length > 0;
+  const isEmpty = !isLoading && active.length === 0 && done.length === 0;
+  const isCaughtUp = !isEmpty && filteredActive.length === 0 && filteredDone.length > 0;
 
-  // Handlers
+  /* ----------------------------------------------------------------
+   * Handlers
+   * ---------------------------------------------------------------- */
+
   const handleComplete = useCallback(
-    (taskId: string) => {
-      const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
-
-      lastCompletedRef.current = task;
-      const completedTask = {
-        ...task,
-        completedAt: new Date().toISOString(),
-        completedByName: DEMO_USER,
-      };
-
-      const earned = 5; // demo: each completion earns 5 points
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
-      setDoneTasks((prev) => [completedTask, ...prev]);
-      setUserPoints((prev) => prev + earned);
-      setUserPointsToday((prev) => prev + earned);
+    (id: string) => {
+      if (!me) return;
+      const dbTask = dbTasks.find((t) => t.id === id);
+      if (!dbTask) return;
+      completeTask.mutate(id);
       setToast({
-        message: getCompletionCopy(task, DEMO_USER),
+        message: getCompletionCopy(dbTask, me.id, partner?.displayName ?? null),
         action: {
           label: "Undo",
           onClick: () => {
-            const restored = lastCompletedRef.current;
-            if (restored) {
-              setDoneTasks((prev) =>
-                prev.filter((t) => t.id !== restored.id)
-              );
-              setTasks((prev) => [...prev, restored]);
-              setUserPoints((p) => p - earned);
-              setUserPointsToday((p) => p - earned);
-              lastCompletedRef.current = null;
-            }
+            uncompleteTask.mutate(id);
             setToast(null);
           },
         },
       });
     },
-    [tasks]
+    [me, partner, dbTasks, completeTask, uncompleteTask],
   );
 
   const handleUncomplete = useCallback(
-    (taskId: string) => {
-      const task = doneTasks.find((t) => t.id === taskId);
-      if (!task) return;
-
-      setDoneTasks((prev) => prev.filter((t) => t.id !== taskId));
-      setTasks((prev) => [
-        { ...task, completedAt: undefined, completedByName: undefined },
-        ...prev,
-      ]);
+    (id: string) => {
+      uncompleteTask.mutate(id);
     },
-    [doneTasks]
+    [uncompleteTask],
   );
 
-  const handlePostpone = useCallback((taskId: string) => {
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === taskId);
-      if (task) lastPostponedRef.current = task;
-      return prev.filter((t) => t.id !== taskId);
-    });
-    setToast({
-      message: "Moved to tomorrow.",
-      action: {
-        label: "Undo",
-        onClick: () => {
-          const restored = lastPostponedRef.current;
-          if (restored) {
-            setTasks((prev) => [...prev, restored]);
-            lastPostponedRef.current = null;
-          }
-          setToast(null);
+  const handlePostpone = useCallback(
+    (id: string) => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowIso = tomorrow.toISOString().split("T")[0];
+      updateTask.mutate({ id, patch: { dueDate: tomorrowIso } });
+      setToast({
+        message: "Moved to tomorrow.",
+        action: {
+          label: "Undo",
+          onClick: () => {
+            updateTask.mutate({ id, patch: { dueDate: todayIso } });
+            setToast(null);
+          },
         },
-      },
-    });
-  }, []);
+      });
+    },
+    [updateTask, todayIso],
+  );
 
-  const handleTap = useCallback((taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId) ?? doneTasks.find((t) => t.id === taskId);
-    if (!task) return;
-    setEditingTask(task);
-    setSheetOpen(true);
-  }, [tasks, doneTasks]);
-
-  const handleAddTask = useCallback(() => {
-    setSheetOpen(true);
-  }, []);
-
-  /**
-   * Called by TaskSheet with the trimmed title.
-   * Optimistic: task appears in list instantly.
-   * Phase 1: always resolves — no real server call.
-   * Phase 2+: replace with real server call; reject on failure to trigger
-   * TaskSheet's inline error state and parent toast.
-   *
-   * Error strategy: TaskSheet shows the inline "That didn't save. Try again?"
-   * message while the sheet is open (sheet stays open on rejection). The parent
-   * also receives the rejection and surfaces a toast ONLY if the sheet is no
-   * longer open at the time of the error (e.g. a background sync failure after
-   * the sheet was dismissed). This prevents the inline + toast redundancy when
-   * both are visible simultaneously.
-   */
-  const handleCreateTask = useCallback(async (data: TaskFormData): Promise<void> => {
-    if (!data.title.trim()) return;
-
-    const assigneeName =
-      data.assignee === "me"
-        ? DEMO_USER
-        : data.assignee === "partner"
-          ? DEMO_PARTNER
-          : undefined;
-
-    const newTask: Task = {
-      id: `new-${Date.now()}`,
-      title: data.title.trim(),
-      flexible: data.flexible,
-      dueTime: data.time ?? undefined,
-      assigneeName,
-      categoryName: data.category === "Uncategorized" ? undefined : data.category,
-      createdByName: DEMO_USER,
-    };
-
-    // Optimistic: add to list immediately
-    setTasks((prev) => [newTask, ...prev]);
-
-    try {
-      // Phase 1: simulate server confirm < 300ms — always succeeds in demo mode.
-      // Phase 2+: replace with: await createTask(newTask); and let rejections propagate.
-      await new Promise<void>((resolve) => setTimeout(resolve, 50));
-    } catch {
-      // Roll back the optimistic task addition
-      setTasks((prev) => prev.filter((t) => t.id !== newTask.id));
-
-      // Error display strategy:
-      // - Sheet open  → TaskSheet shows the inline "That didn't save. Try again?"
-      //                 message. No toast (would be redundant and visually noisy).
-      // - Sheet closed → Sheet already dismissed; inline message unreachable.
-      //                  Surface a toast instead.
-      if (!sheetOpenRef.current) {
-        setToast({ message: "That didn't save. Try again?" });
+  const handleTap = useCallback(
+    (id: string) => {
+      const t = uiTasks.find((x) => x.id === id);
+      if (t) {
+        setEditingTask(t);
+        setSheetOpen(true);
       }
+    },
+    [uiTasks],
+  );
 
-      // Re-throw so TaskSheet can show the inline error when the sheet is open.
-      throw new Error("Failed to create task");
-    }
-  }, []);
+  const handleAddTask = useCallback(() => setSheetOpen(true), []);
 
-  const handleRollOver = useCallback(() => {
-    const count = filteredTasks.length;
-    lastRolledRef.current = [...tasks];
-    setTasks([]);
-    setToast({
-      message: count === 1 ? "Tomorrow's problem now." : `All ${count} pushed to tomorrow.`,
-      duration: 12000,
-      action: {
-        label: "Undo",
-        onClick: () => {
-          const restored = lastRolledRef.current;
-          if (restored.length > 0) {
-            setTasks(restored);
-            lastRolledRef.current = [];
-          }
-          setToast(null);
+  const handleCreateTask = useCallback(
+    async (data: TaskFormData) => {
+      if (!me || !data.title.trim()) return;
+      const input = formDataToCreateInput(data, me, partner, categoryIdByName, todayIso);
+      try {
+        await createTask.mutateAsync(input);
+      } catch {
+        if (!sheetOpenRef.current) setToast({ message: "That didn't save. Try again?" });
+        throw new Error("Failed to create task");
+      }
+    },
+    [me, partner, categoryIdByName, todayIso, createTask],
+  );
+
+  const handleEditSubmit = useCallback(
+    async (data: TaskFormData) => {
+      if (!editingTask || !me) return;
+      const input = formDataToCreateInput(data, me, partner, categoryIdByName, todayIso);
+      await updateTask.mutateAsync({ id: editingTask.id, patch: input });
+    },
+    [editingTask, me, partner, categoryIdByName, todayIso, updateTask],
+  );
+
+  const executeDelete = useCallback(
+    (id: string) => {
+      const deleted = dbTasks.find((t) => t.id === id);
+      deleteTask.mutate(id);
+      setToast({
+        message: "Deleted.",
+        action: {
+          label: "Undo",
+          onClick: () => {
+            if (!deleted || !me) return;
+            createTask.mutate({
+              title: deleted.title,
+              notes: deleted.notes,
+              dueDate: deleted.dueDate,
+              dueTime: deleted.dueTime,
+              flexible: deleted.flexible,
+              categoryId: deleted.categoryId,
+              assigneeUserId: deleted.assigneeUserId,
+              points: deleted.points,
+              // repeatRule stored as JSONB — pass through as-is; the API validator
+              // will accept it if it conforms to the schema.
+              repeatRule: deleted.repeatRule as CreateTaskInput["repeatRule"],
+            });
+            setToast(null);
+          },
         },
-      },
-    });
-  }, [filteredTasks.length, tasks]);
+      });
+    },
+    [dbTasks, deleteTask, createTask, me],
+  );
 
-  const handleEditSubmit = useCallback(async (data: TaskFormData): Promise<void> => {
-    if (!editingTask) return;
-
-    const assigneeName =
-      data.assignee === "me"
-        ? DEMO_USER
-        : data.assignee === "partner"
-          ? DEMO_PARTNER
-          : undefined;
-
-    const updatedTask: Task = {
-      ...editingTask,
-      title: data.title,
-      flexible: data.flexible,
-      dueTime: data.time ?? undefined,
-      assigneeName,
-      categoryName: data.category === "Uncategorized" ? undefined : data.category,
-    };
-
-    if (editingTask.completedAt) {
-      setDoneTasks((prev) => prev.map((t) => t.id === editingTask.id ? updatedTask : t));
-    } else {
-      setTasks((prev) => prev.map((t) => t.id === editingTask.id ? updatedTask : t));
-    }
-
-    await new Promise<void>((resolve) => setTimeout(resolve, 50));
-  }, [editingTask]);
-
-  const lastDeletedRef = useRef<{ task: Task; wasCompleted: boolean } | null>(null);
-
-  const executeDelete = useCallback((taskId: string) => {
-    const activeTask = tasks.find((t) => t.id === taskId);
-    const doneTask = doneTasks.find((t) => t.id === taskId);
-    const task = activeTask ?? doneTask;
-    if (!task) return;
-
-    const wasCompleted = !!doneTask;
-    lastDeletedRef.current = { task, wasCompleted };
-
-    if (wasCompleted) {
-      setDoneTasks((prev) => prev.filter((t) => t.id !== taskId));
-      const earned = 5;
-      setUserPoints((p) => p - earned);
-      setUserPointsToday((p) => p - earned);
-    } else {
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
-    }
-
-    setToast({
-      message: "Deleted.",
-      action: {
-        label: "Undo",
-        onClick: () => {
-          const restored = lastDeletedRef.current;
-          if (restored) {
-            if (restored.wasCompleted) {
-              setDoneTasks((prev) => [restored.task, ...prev]);
-              const earned = 5;
-              setUserPoints((p) => p + earned);
-              setUserPointsToday((p) => p + earned);
-            } else {
-              setTasks((prev) => [...prev, restored.task]);
-            }
-            lastDeletedRef.current = null;
-          }
-          setToast(null);
-        },
-      },
-    });
-  }, [tasks, doneTasks]);
-
-  const handleDelete = useCallback((taskId: string) => {
-    executeDelete(taskId);
-  }, [executeDelete]);
+  const handleDelete = useCallback((id: string) => executeDelete(id), [executeDelete]);
 
   const handleDeleteFromSheet = useCallback(() => {
     if (!editingTask) return;
-    const taskId = editingTask.id;
-    // TODO: check if task has a repeat rule to determine isRepeating
-    const isRepeating = false; // demo data has no repeating tasks
+    const id = editingTask.id;
     setSheetOpen(false);
     setEditingTask(null);
-    if (isRepeating) {
-      setDeleteDialog({ taskId, isRepeating: true });
-    } else {
-      executeDelete(taskId);
-    }
+    executeDelete(id);
   }, [editingTask, executeDelete]);
 
-  // Keep sheetOpenRef in sync with sheetOpen state
+  /* ----------------------------------------------------------------
+   * Effects
+   * ---------------------------------------------------------------- */
+
   useEffect(() => {
     sheetOpenRef.current = sheetOpen;
   }, [sheetOpen]);
 
-  // Mark swipe hint as shown after first render
   useEffect(() => {
     swipeHintShown.current = true;
   }, []);
 
-  // Global Cmd+Enter: opens sheet when closed.
-  // When the sheet is open, TaskSheet itself handles Cmd+Enter for submission
-  // via its internal keydown listener — no need to duplicate here.
   useEffect(() => {
-    function handleGlobalKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-        if (!sheetOpen) {
-          e.preventDefault();
-          handleAddTask();
-        }
-        // When sheetOpen, TaskSheet's own listener handles submission.
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !sheetOpen) {
+        e.preventDefault();
+        handleAddTask();
       }
     }
-    document.addEventListener("keydown", handleGlobalKey);
-    return () => document.removeEventListener("keydown", handleGlobalKey);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [sheetOpen, handleAddTask]);
 
-  // Stagger animation variants
+  /* ----------------------------------------------------------------
+   * Animation variants
+   * ---------------------------------------------------------------- */
+
   const listVariants = {
     hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: shouldReduceMotion ? 0 : 0.04,
-      },
-    },
+    visible: { transition: { staggerChildren: shouldReduceMotion ? 0 : 0.04 } },
   };
-
   const itemVariants = {
     hidden: shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 6 },
     visible: shouldReduceMotion
       ? { opacity: 1 }
-      : {
-          opacity: 1,
-          y: 0,
-          transition: { duration: 0.3, ease: EASE_OUT_QUART },
-        },
+      : { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE_OUT_QUART } },
   };
+
+  /* ----------------------------------------------------------------
+   * Edit mode initial data — map UITask back to TaskFormData shape
+   * ---------------------------------------------------------------- */
+
+  const editInitialData: Partial<TaskFormData> | undefined = useMemo(() => {
+    if (!editingTask || !me) return undefined;
+    return uiTaskToFormData(editingTask, me, partner, categoryIdByName, todayIso);
+  }, [editingTask, me, partner, categoryIdByName, todayIso]);
+
+  /* ----------------------------------------------------------------
+   * Render
+   * ---------------------------------------------------------------- */
 
   return (
     <AppShell
       activePath="/today"
-      userName={DEMO_USER}
-      partnerName={DEMO_PARTNER}
-      userPoints={userPoints}
-      partnerPoints={312}
-      userPointsToday={userPointsToday}
-      partnerPointsToday={60}
-      hasNotification={true}
-      todayCount={filteredTasks.length}
-      weekCount={12}
+      userName={me?.displayName ?? ""}
+      partnerName={partner?.displayName ?? ""}
+      userPoints={0}
+      partnerPoints={0}
+      userPointsToday={0}
+      partnerPointsToday={0}
+      hasNotification={false}
+      todayCount={filteredActive.length}
+      weekCount={0}
       monthLabel={new Date().toLocaleDateString("en-US", { month: "long" })}
     >
       {/* ---- Page header ---- */}
@@ -595,9 +522,9 @@ export default function TodayPage() {
         </h1>
         <p className="text-[length:var(--text-sm)] text-[color:var(--color-text-tertiary)] mt-[var(--space-1)]">
           {fullDate}
-          {totalActive > 0 && !isCaughtUp && (
+          {filteredActive.length > 0 && !isCaughtUp && (
             <span className="ml-[var(--space-2)] text-[color:var(--color-text-secondary)]">
-              &middot; {totalActive} {totalActive === 1 ? "task" : "tasks"} to do
+              &middot; {filteredActive.length} {filteredActive.length === 1 ? "task" : "tasks"} to do
             </span>
           )}
         </p>
@@ -605,62 +532,16 @@ export default function TodayPage() {
 
       {/* ---- Toolbar ---- */}
       <div className="flex items-center justify-between gap-[var(--space-3)] mb-[var(--space-4)]">
-        <FilterToggle
-          value={filter}
-          onChange={setFilter}
-          partnerName={DEMO_PARTNER}
-        />
-
+        <FilterToggle value={filter} onChange={setFilter} partnerName={partner?.displayName ?? ""} />
         <div className="flex items-center gap-[var(--space-2)]">
-          {filteredTasks.length > 0 && (
-            <button
-              onClick={handleRollOver}
-              aria-label="Roll all tasks to tomorrow"
-              className="
-                inline-flex items-center gap-[var(--space-1)]
-                px-[var(--space-3)] py-[var(--space-2)]
-                rounded-[var(--radius-md)]
-                text-[length:var(--text-sm)] font-[var(--weight-medium)]
-                text-[color:var(--color-text-secondary)]
-                hover:text-[color:var(--color-text-primary)] hover:bg-[var(--color-surface)]
-                transition-colors duration-[var(--duration-instant)]
-                min-h-[var(--touch-target-min)]
-              "
-            >
-              <span className="hidden lg:inline">Roll to tomorrow</span>
-              <span className="lg:hidden">Roll all</span>
-              <ArrowRight size={14} strokeWidth={2} aria-hidden="true" />
-            </button>
-          )}
-
-          {/* Desktop add button */}
           <button
             onClick={handleAddTask}
             aria-keyshortcuts="Meta+Enter"
-            className="
-              hidden lg:inline-flex items-center gap-[var(--space-2)]
-              px-[var(--space-4)] py-[var(--space-2)]
-              rounded-[var(--radius-md)]
-              text-[length:var(--text-sm)] font-[var(--weight-semibold)]
-              bg-[var(--color-accent)] text-[color:var(--color-accent-text)]
-              hover:bg-[var(--color-accent-hover)]
-              shadow-[var(--shadow-accent-glow)]
-              hover:shadow-[var(--shadow-accent-glow-strong,var(--shadow-accent-glow))]
-              active:scale-[0.98]
-              transition-all duration-[var(--duration-instant)]
-              min-h-[var(--touch-target-min)]
-            "
+            className="hidden lg:inline-flex items-center gap-[var(--space-2)] px-[var(--space-4)] py-[var(--space-2)] rounded-[var(--radius-md)] text-[length:var(--text-sm)] font-[var(--weight-semibold)] bg-[var(--color-accent)] text-[color:var(--color-accent-text)] hover:bg-[var(--color-accent-hover)] shadow-[var(--shadow-accent-glow)] active:scale-[0.98] transition-all duration-[var(--duration-instant)] min-h-[var(--touch-target-min)]"
           >
             <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
             Add task
-            <kbd className="
-              ml-[var(--space-1)] px-[var(--space-1)] py-[var(--space-0-5)]
-              rounded-[var(--radius-sm)]
-              bg-[var(--color-accent-hover)]
-              text-[length:var(--text-xs)] font-[var(--weight-medium)]
-              text-[color:var(--color-accent-text)]
-              opacity-80
-            ">
+            <kbd className="ml-[var(--space-1)] px-[var(--space-1)] py-[var(--space-0-5)] rounded-[var(--radius-sm)] bg-[var(--color-accent-hover)] text-[length:var(--text-xs)] font-[var(--weight-medium)] text-[color:var(--color-accent-text)] opacity-80">
               ⌘↵
             </kbd>
           </button>
@@ -672,18 +553,13 @@ export default function TodayPage() {
         <EmptyState variant="no-tasks" onAddTask={handleAddTask} />
       ) : isCaughtUp ? (
         <>
-          <EmptyState variant="caught-up" completedCount={doneTasks.length} />
-          <DoneAccordion
-            tasks={filteredDone}
-            onUncomplete={handleUncomplete}
-            onTap={handleTap}
-            onDelete={handleDelete}
-          />
+          <EmptyState variant="caught-up" completedCount={done.length} />
+          <DoneAccordion tasks={filteredDone} onUncomplete={handleUncomplete} onTap={handleTap} onDelete={handleDelete} />
         </>
       ) : (
         <>
           {/* Primary section — hard-deadline tasks */}
-          {primaryTasks.length > 0 && (
+          {primary.length > 0 && (
             <motion.section
               variants={listVariants}
               initial="hidden"
@@ -695,7 +571,7 @@ export default function TodayPage() {
               </h2>
               <div className="flex flex-col divide-y divide-[var(--color-border-subtle)] rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--shadow-sm)] bg-[var(--color-surface)]">
                 <AnimatePresence mode="popLayout">
-                  {primaryTasks.map((task, index) => (
+                  {primary.map((task, index) => (
                     <motion.div
                       key={task.id}
                       variants={itemVariants}
@@ -723,7 +599,7 @@ export default function TodayPage() {
           )}
 
           {/* Secondary section — flexible tasks */}
-          {secondaryTasks.length > 0 && (
+          {secondary.length > 0 && (
             <motion.section
               variants={listVariants}
               initial="hidden"
@@ -736,7 +612,7 @@ export default function TodayPage() {
               </h2>
               <div className="flex flex-col divide-y divide-[var(--color-border-subtle)] rounded-[var(--radius-lg)] overflow-hidden bg-[var(--color-surface)]">
                 <AnimatePresence mode="popLayout">
-                  {secondaryTasks.map((task) => (
+                  {secondary.map((task) => (
                     <motion.div
                       key={task.id}
                       variants={itemVariants}
@@ -774,10 +650,10 @@ export default function TodayPage() {
         </>
       )}
 
-      {/* ---- FAB (mobile) — hidden when the sheet is open ---- */}
+      {/* ---- FAB (mobile) ---- */}
       <Fab onClick={handleAddTask} isSheetOpen={sheetOpen} />
 
-      {/* ---- Add task sheet ---- */}
+      {/* ---- Task sheet ---- */}
       <TaskSheet
         isOpen={sheetOpen}
         onClose={() => {
@@ -787,9 +663,9 @@ export default function TodayPage() {
         onSubmit={editingTask ? handleEditSubmit : handleCreateTask}
         onDelete={editingTask ? handleDeleteFromSheet : undefined}
         mode={editingTask ? "edit" : "create"}
-        initialData={editingTask ? taskToFormData(editingTask) : undefined}
-        userName={DEMO_USER}
-        partnerName={DEMO_PARTNER}
+        initialData={editInitialData}
+        userName={me?.displayName ?? ""}
+        partnerName={partner?.displayName ?? ""}
       />
 
       {/* ---- Toast ---- */}
@@ -801,41 +677,21 @@ export default function TodayPage() {
         duration={toast?.duration}
       />
 
+      {/* ---- Confirm dialog (delete) ---- */}
       <ConfirmDialog
         isOpen={!!deleteDialog}
         onClose={() => setDeleteDialog(null)}
         title="Delete it for good?"
-        actions={
-          deleteDialog?.isRepeating
-            ? [
-                {
-                  label: "Just this one",
-                  variant: "destructive" as const,
-                  onClick: () => {
-                    if (deleteDialog) executeDelete(deleteDialog.taskId);
-                    setDeleteDialog(null);
-                  },
-                },
-                {
-                  label: "All future ones too",
-                  variant: "destructive" as const,
-                  onClick: () => {
-                    if (deleteDialog) executeDelete(deleteDialog.taskId);
-                    setDeleteDialog(null);
-                  },
-                },
-              ]
-            : [
-                {
-                  label: "Delete",
-                  variant: "destructive" as const,
-                  onClick: () => {
-                    if (deleteDialog) executeDelete(deleteDialog.taskId);
-                    setDeleteDialog(null);
-                  },
-                },
-              ]
-        }
+        actions={[
+          {
+            label: "Delete",
+            variant: "destructive" as const,
+            onClick: () => {
+              if (deleteDialog) executeDelete(deleteDialog.taskId);
+              setDeleteDialog(null);
+            },
+          },
+        ]}
       />
     </AppShell>
   );
