@@ -48,7 +48,9 @@ Full rationale for every choice: [docs/tech-stack.md](docs/tech-stack.md).
    - ✅ Phase 3: Repeat picker with NLP
    - ✅ Phase 4: Edit mode + Delete
 10. ✅ Playwright e2e (274 runs, 0 failures — optimized from 733)
-11. Keep updating docs after every major change
+11. ✅ Persistence + auth (Clerk + Neon + Drizzle, API routes, TanStack Query, seeded task DB)
+    - Pre-existing demo-state e2e specs (`task-sheet.spec.ts`, `today-view.spec.ts`) will need adapting to real backend — tracked as follow-up.
+12. Keep updating docs after every major change
 
 ## Foundation docs (read the ones relevant to your task)
 
@@ -79,9 +81,12 @@ Full rationale for every choice: [docs/tech-stack.md](docs/tech-stack.md).
 npm run dev                    # Start Next.js dev server
 npm run test:e2e               # Playwright e2e (3 viewports)
 npm run test:e2e:ui            # Playwright with interactive UI
-npm run test                   # Vitest (not yet configured)
-npx drizzle-kit generate       # Generate migration
-npx drizzle-kit migrate        # Run migrations
+npm run test                   # Vitest (jsdom + RTL)
+npm run test:watch             # Vitest watch mode
+npm run db:generate            # Drizzle — generate migration from schema
+npm run db:migrate             # Drizzle — apply migrations (uses DATABASE_URL_UNPOOLED)
+npm run db:seed                # Seed seeded_tasks + default categories (idempotent)
+npm run db:studio              # Drizzle Studio
 npm run lint                   # ESLint
 ```
 
@@ -96,12 +101,12 @@ npm run lint                   # ESLint
 - Design system is code-first. No Figma.
 - The entire tech stack above. Rationale in `docs/tech-stack.md`.
 
-## External systems (verified 2026-04-10)
+## External systems (verified 2026-04-14)
 
 | System | Status | Notes |
 |---|---|---|
-| Neon | Connected (Postgres 17, us-east-1) | `DATABASE_URL` + `DATABASE_URL_UNPOOLED` via Vercel integration |
-| Clerk | Connected (dev instance) | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY` |
+| Neon | Live (Postgres 17, us-east-1) | Schema migrated + seeded (98 tasks, 5 default categories). `DATABASE_URL` + `DATABASE_URL_UNPOOLED` via Vercel integration |
+| Clerk | Live (dev instance) | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` + `CLERK_SECRET_KEY`. Household auto-created on first sign-in via `getAuthedContext()` |
 | Vercel | Deployed | Auto-deploys from `main` |
 | Cloudflare | Account ready | Domain pending naming decision |
 | Stripe | Account ready (sandbox) | Not integrated in v1 |
