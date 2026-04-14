@@ -38,6 +38,32 @@ No raw framework defaults for animation duration or easing. Every animated compo
 ### 8. Copy goes through voice and tone.
 Any user-visible string in a component — placeholders, labels, error text, empty state copy — must pass the voice and tone test (see [`../docs/voice-and-tone.md`](../docs/voice-and-tone.md)). When in doubt, run the `design:ux-copy` skill.
 
+## Conventions (established values)
+
+These are the specific choices made for this project. They're not rules — they're decisions.
+
+| Decision | Value |
+|---|---|
+| Body font | Bricolage Grotesque (Google Fonts, variable weight) |
+| Display font | Gabarito (Google Fonts, variable weight) |
+| Color space | OKLCH everywhere |
+| Brand hue | ~42° (warm terracotta/peach accent) |
+| Neutral tint hue | 55° (warm, chroma 0.005-0.012) |
+| Spacing base | 4pt grid (4, 8, 12, 16, 24, 32, 48, 64, 96) |
+| Easing | ease-out-quart `cubic-bezier(0.25, 1, 0.5, 1)` — no bounce/elastic. JS: `src/lib/motion.ts` |
+| Icon library | Lucide (line, strokeWidth 2, rounded corners) |
+| Theme | Light (Cozy) — derived from domestic/couples context |
+| Canvas/surface contrast | Canvas 93% / Surface 98.5% lightness (warm parchment) |
+| Desktop nav | Left rail — peek (72px), expands on hover, pinnable (⌘\) |
+| Mobile nav | Bottom tab bar (4 slots) + compact header with points |
+| Task creation | Bottom sheet (both breakpoints) |
+| Inline pickers | Popover (desktop) or secondary BottomSheet (mobile, date only) |
+| Height animation | `grid-template-rows: 0fr → 1fr` (not Framer Motion height) |
+| Breakpoint | lg: (1024px) for desktop/mobile split |
+| Edit entry | Tap task row (primary) or "Edit" in overflow menu (secondary) |
+| Delete (non-repeating) | Direct delete with undo toast, no confirmation |
+| Delete (repeating) | ConfirmDialog with "Just this one" / "All future ones too" |
+
 ## Folder layout
 
 ```
