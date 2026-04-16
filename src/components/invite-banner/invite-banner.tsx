@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useState } from "react";
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { UserPlus, X } from "lucide-react";
 import { EASE_OUT_QUART } from "../../lib/motion";
@@ -84,7 +85,7 @@ export function InviteBanner({ hidden = false }: InviteBannerProps) {
         </p>
       </div>
 
-      <a
+      <Link
         href="/invite"
         className="
           shrink-0 inline-flex items-center
@@ -100,7 +101,7 @@ export function InviteBanner({ hidden = false }: InviteBannerProps) {
         "
       >
         Send invite
-      </a>
+      </Link>
 
       <button
         type="button"

@@ -470,7 +470,7 @@ function UtilityRow({
       {/* Solo-state peek affordance — when collapsed & solo, just an accented
           icon so the invite path stays reachable. */}
       {!partnerName && !isExpanded && (
-        <a
+        <Link
           href="/invite"
           title="Bring your person in"
           className="
@@ -483,7 +483,7 @@ function UtilityRow({
         >
           <UserPlus size={20} strokeWidth={2.25} aria-hidden="true" />
           <span className="sr-only">Bring your person in</span>
-        </a>
+        </Link>
       )}
 
       {/* Always-vertical stack. Settings and Pin use an identical

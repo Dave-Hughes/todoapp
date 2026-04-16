@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { Avatar } from "../avatar/avatar";
 import { MobilePoints } from "../points-display/points-display";
@@ -47,7 +48,7 @@ export function MobileHeader({
             dismissed; this is the always-reachable path to /invite on
             mobile. */}
         {isSolo && (
-          <a
+          <Link
             href="/invite"
             aria-label="Bring your person in"
             title="Bring your person in"
@@ -62,7 +63,7 @@ export function MobileHeader({
             "
           >
             <UserPlus size={18} strokeWidth={2.25} aria-hidden="true" />
-          </a>
+          </Link>
         )}
 
         {/* Avatar with notification dot */}
