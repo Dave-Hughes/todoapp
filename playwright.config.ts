@@ -5,6 +5,7 @@ config({ path: ".env.local" });
 config({ path: ".env.test", override: true });
 
 const STORAGE = "tests/.auth/user.json";
+const PARTNER_STORAGE = "tests/.auth/partner.json";
 
 export default defineConfig({
   testDir: "./tests",
@@ -26,6 +27,10 @@ export default defineConfig({
       testMatch: /auth\.setup\.ts/,
     },
     {
+      name: "setup-partner",
+      testMatch: /invite\.setup\.ts/,
+    },
+    {
       name: "desktop-chrome",
       use: { ...devices["Desktop Chrome"], storageState: STORAGE },
       dependencies: ["setup"],
@@ -39,6 +44,12 @@ export default defineConfig({
       name: "mobile-safari",
       use: { ...devices["iPhone 14"], storageState: STORAGE },
       dependencies: ["setup"],
+    },
+    {
+      name: "invite-flow",
+      testMatch: /invite-flow\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup", "setup-partner"],
     },
   ],
 
