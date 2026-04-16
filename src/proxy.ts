@@ -4,6 +4,12 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/health",
+  // Public invite landing. /invite/[token]/accept is also matched here, but
+  // that page re-checks auth in the server component and redirects to
+  // sign-in if missing — this lets the partner follow the link without
+  // hitting Clerk's middleware wall before they've even seen the branded
+  // page.
+  "/invite/(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
