@@ -7,11 +7,11 @@ import { cancelInvite } from "@/lib/db/queries/invites";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ token: string }> },
 ) {
   try {
     const { householdId } = await getAuthedContext();
-    const { id } = await params;
+    const { token: id } = await params;
 
     // Scope check: the invite must belong to the caller's household.
     const [row] = await db
