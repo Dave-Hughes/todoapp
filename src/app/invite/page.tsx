@@ -32,7 +32,7 @@ export default function InvitePage() {
             Bring your person in.
           </h1>
           <p className="text-[length:var(--text-md)] text-[color:var(--color-text-secondary)]">
-            Two heads, one list. That's the whole point.
+            Two heads, one list. That&apos;s the whole point.
           </p>
         </header>
 

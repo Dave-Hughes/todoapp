@@ -52,7 +52,7 @@ export function InviteCompose({ onSent }: InviteComposeProps) {
           htmlFor="invite-email"
           className="text-[length:var(--text-sm)] font-[var(--weight-semibold)] text-[color:var(--color-text-primary)]"
         >
-          Your partner's email
+          Your partner&apos;s email
         </label>
         <input
           id="invite-email"
@@ -86,7 +86,7 @@ export function InviteCompose({ onSent }: InviteComposeProps) {
             role="alert"
             className="text-[length:var(--text-sm)] text-[color:var(--color-danger)]"
           >
-            Couldn't send. {(createInvite.error as Error).message}
+            Couldn&apos;t send. {(createInvite.error as Error).message}
           </p>
         ) : null}
       </div>
