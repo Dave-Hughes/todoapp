@@ -11,6 +11,10 @@ export async function DELETE(
 ) {
   try {
     const { householdId } = await getAuthedContext();
+    // Dir name is [token] because Next.js requires sibling dynamic routes under
+    // /api/invites/ to share a slug name (see [token]/accept/). The caller
+    // (useCancelInvite) actually passes the invite UUID (invites.id), so we
+    // rename locally to `id` to match the DB column.
     const { token: id } = await params;
 
     // Scope check: the invite must belong to the caller's household.
