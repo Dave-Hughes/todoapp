@@ -84,7 +84,16 @@ Added `"/invite/(.*)"` to the Clerk public-route matcher. Note: `/invite` itself
 
 ## What's left — Tasks 21–24
 
-The plan file has full text for each. Prerequisites and gotchas flagged below.
+> **Update (2026-04-16, end of Phase 3 session):** All four tasks are done. Branch now 28 commits ahead of main. Baseline: `vitest` 74/74, `next build` clean, `lint` has 1 pre-existing error (`week-day-strip.test.tsx` `no-explicit-any`, unchanged from Phase 5), `invite-flow` e2e 4/4 green. Follow-ups from this section are now tracked in `docs/open-questions.md` items #18–#25.
+>
+> **Phase 3 session notes worth preserving:**
+> 1. **Clerk password initially wrong.** The partner user's password in the Clerk dashboard was `Cmozart00123!` (trailing `!` missing from the value I originally typed). Fixed in `.env.test` and the smoke test passed on the retry.
+> 2. **Sibling dynamic-route slug conflict surfaced during Task 22 smoke test.** `src/app/api/invites/[id]/route.ts` + `[token]/accept/route.ts` both existed as siblings under `/api/invites/` — Next.js/Turbopack rejected this in dev (`'id' !== 'token'`), even though `next build` alone didn't flag it in Phase 2. Task 22's commit renamed `[id]` → `[token]` with `{ token: id } = await params` destructure; the callsite `useCancelInvite` passes the UUID unchanged. This ate two commits (the test commit + a follow-up to document the alias). Lesson captured in open-questions #25.
+> 3. **DEV_RESET_SECRET sync.** `.env.test` was set to `test-only-secret` in Phase 1 but `.env.local` has `local-dev-secret-change-me`. Playwright's `webServer` spawns the dev server in the runner's env, so the runner's `.env.test` override propagates — but `reuseExistingServer: true` means an already-running dev server (started from `.env.local`) won't pick up the override. Synced `.env.test` to the `.env.local` value during Task 22 to eliminate the 401 hazard on `resetInviteState`.
+> 4. **Opus code-quality review on Task 22 caught three issues.** Unused `E2E_USER` import (lint warning), browser lifecycle without `try/finally` (zombie chromium on test failure), and the `{ token: id }` alias needing a comment. All three fixed in commit `66b2b40`.
+> 5. **PARTNER_STORAGE still a warning in `playwright.config.ts`.** Task 21's spec declared the constant but nothing uses it (the `invite-flow` project creates contexts per-test via `browser.newContext({ storageState: "tests/.auth/partner.json" })`, so the module-level constant is dead). Cosmetic, `no-unused-vars` warning only, not blocking. Fixable as a one-line cleanup in any future pass.
+>
+> Tasks 21–24 as originally specified below are retained for historical reference.
 
 ### Task 21: Partner Playwright auth setup
 - Requires creating a **second Clerk test user** in the Clerk dashboard first. Create `partner+clerk_test@example.com` with a strong password, copy the user ID/email/password into `.env.test`'s three empty `E2E_PARTNER_CLERK_USER_*` placeholders.
