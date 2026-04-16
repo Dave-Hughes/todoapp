@@ -56,3 +56,6 @@ tests/.auth/
 # Editor / session state
 .obsidian/workspace.json
 .claude/
+
+# Tool state
+.claire/

@@ -54,7 +54,10 @@ These are the specific choices made for this project. They're not rules — they
 | Icon library | Lucide (line, strokeWidth 2, rounded corners) |
 | Theme | Light (Cozy) — derived from domestic/couples context |
 | Canvas/surface contrast | Canvas 93% / Surface 98.5% lightness (warm parchment) |
-| Desktop nav | Left rail — peek (72px), expands on hover, pinnable (⌘\) |
+| Desktop nav | Left rail — binary: collapsed 72px icon rail or pinned 272px open. Toggle via pin button or ⌘\. No hover-expand. |
+| View shell | Shared layout at `src/app/(views)/layout.tsx` owns `AppShell` (sidebar + chrome). Pages are leaves that return fragments. Sidebar stays mounted across nav. |
+| Internal links | `next/link` `<Link>` everywhere inside the authenticated app. Plain `<a href>` triggers a full reload and blows away the shared layout. |
+| View-switch motion | `AnimatePresence mode="wait"` on `{children}` in AppShell — opacity-only (0→1 enter, 1→0 exit), 220ms each, EASE_OUT_QUART. No transforms on the wrapper (fractional `translateY` smears child `divide-y` borders into ghost lines). |
 | Mobile nav | Bottom tab bar (4 slots) + compact header with points |
 | Task creation | Bottom sheet (both breakpoints) |
 | Inline pickers | Popover (desktop) or secondary BottomSheet (mobile, date only) |
