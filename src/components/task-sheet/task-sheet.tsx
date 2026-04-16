@@ -5,11 +5,23 @@ import {
   useRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   type KeyboardEvent,
 } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { X, ChevronDown, ChevronUp, Plus, Minus, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  X,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  Minus,
+  Trash2,
+  Calendar,
+  UserRound,
+  Tag,
+  RotateCw,
+} from "lucide-react";
 import { IconButton } from "../icon-button/icon-button";
 import { BottomSheet } from "../bottom-sheet/bottom-sheet";
 import { TaskChip } from "../task-chip/task-chip";
@@ -29,6 +41,8 @@ import {
   type RepeatRule,
 } from "../repeat-picker/repeat-picker";
 import { formatRepeatRule } from "../repeat-picker/format-repeat";
+
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /* ================================================================
  * Types
@@ -133,7 +147,6 @@ export function TaskSheet({
   userName = "Me",
   partnerName = "Krista",
 }: TaskSheetProps) {
-  const shouldReduceMotion = useReducedMotion();
   const todayISO = useMemo(() => new Date().toISOString().split("T")[0], []);
 
   /* ---------------------------------------------------------------
@@ -167,7 +180,7 @@ export function TaskSheet({
    * --------------------------------------------------------------- */
 
   const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
     setIsMobile(mq.matches);
     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
@@ -179,11 +192,13 @@ export function TaskSheet({
    * Reset state when sheet opens/closes
    * --------------------------------------------------------------- */
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     if (isOpen) {
       const isEdit = mode === "edit";
       setTitle(isEdit ? (initialData?.title ?? "") : "");
-      setDate(isEdit ? (initialData?.date ?? todayISO) : todayISO);
+      // Date honors initialData in BOTH modes so Week/Month views can pre-fill
+      // the selected day ("context-aware task creation" per specs/views.md).
+      setDate(initialData?.date ?? todayISO);
       setAssignee(isEdit ? (initialData?.assignee ?? "me") : "me");
       setCategory(isEdit ? (initialData?.category ?? "Uncategorized") : "Uncategorized");
       setRepeatRule(isEdit ? (initialData?.repeatRule ?? null) : null);
@@ -217,7 +232,7 @@ export function TaskSheet({
    * Auto-points: update when title changes (unless manually set)
    * --------------------------------------------------------------- */
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     if (pointsManual) return;
     const auto = getAutoPoints(title);
     setPoints(auto);
@@ -478,6 +493,12 @@ export function TaskSheet({
                 onClick={onDelete}
               />
             )}
+            <kbd
+              aria-hidden="true"
+              className="hidden lg:inline-flex items-center justify-center min-w-[1.25rem] h-[1.25rem] px-[var(--space-1-5)] rounded-[var(--radius-sm)] bg-[var(--color-surface-elevated)] border border-[var(--color-border-subtle)] font-[family-name:var(--font-mono)] text-[length:var(--text-xs)] text-[color:var(--color-text-tertiary)] leading-none"
+            >
+              Esc
+            </kbd>
             <IconButton
               icon={<X size={18} strokeWidth={2} />}
               label="Close"
@@ -562,7 +583,7 @@ export function TaskSheet({
               {/* Date chip */}
               <TaskChip
                 ref={dateChipRef}
-                icon="📅"
+                icon={<Calendar size={14} strokeWidth={2} aria-hidden="true" />}
                 label={dateLabel}
                 ariaLabel={`Set due date — currently ${dateLabel}`}
                 disabled={isSubmitting}
@@ -574,7 +595,7 @@ export function TaskSheet({
               {/* Assignee chip */}
               <TaskChip
                 ref={assigneeChipRef}
-                icon="👤"
+                icon={<UserRound size={14} strokeWidth={2} aria-hidden="true" />}
                 label={assigneeLabel}
                 ariaLabel={`Set assignee — currently ${assigneeLabel}`}
                 disabled={isSubmitting}
@@ -586,7 +607,7 @@ export function TaskSheet({
               {/* Category chip */}
               <TaskChip
                 ref={categoryChipRef}
-                icon="🏷"
+                icon={<Tag size={14} strokeWidth={2} aria-hidden="true" />}
                 label={category}
                 ariaLabel={`Set category — currently ${category}`}
                 disabled={isSubmitting}
@@ -598,7 +619,7 @@ export function TaskSheet({
               {/* Repeat chip */}
               <TaskChip
                 ref={repeatChipRef}
-                icon="🔁"
+                icon={<RotateCw size={14} strokeWidth={2} aria-hidden="true" />}
                 label={repeatRule ? formatRepeatRule(repeatRule) : "Doesn't repeat"}
                 ariaLabel={`Set repeat rule — currently ${repeatRule ? formatRepeatRule(repeatRule) : "doesn't repeat"}`}
                 disabled={isSubmitting}
@@ -888,27 +909,12 @@ export function TaskSheet({
           </div>
 
           {/* ---- CTA row ---- */}
-          <div className="flex items-center justify-between gap-[var(--space-3)]">
-            <p
-              className="
-                hidden lg:block
-                text-[length:var(--text-xs)] text-[color:var(--color-text-disabled)]
-              "
-              aria-hidden="true"
-            >
-              <kbd className="font-[family-name:var(--font-mono)]">↵</kbd> {mode === "edit" ? "to save" : "to add"}
-              &nbsp;&middot;&nbsp;
-              <kbd className="font-[family-name:var(--font-mono)]">⇧↵</kbd> newline
-              &nbsp;&middot;&nbsp;
-              <kbd className="font-[family-name:var(--font-mono)]">Esc</kbd> to cancel
-            </p>
-
-            <div className="lg:hidden" aria-hidden="true" />
-
+          <div className="flex items-center justify-end gap-[var(--space-3)]">
             <button
               type="submit"
               disabled={!canSubmit}
               aria-label={isSubmitting ? (mode === "edit" ? "Saving\u2026" : "Adding task\u2026") : (mode === "edit" ? "Save" : "Add it")}
+              aria-keyshortcuts="Enter"
               className="
                 inline-flex items-center gap-[var(--space-2)]
                 px-[var(--space-6)] py-[var(--space-3)]
@@ -931,6 +937,14 @@ export function TaskSheet({
                 />
               ) : null}
               {isSubmitting ? (mode === "edit" ? "Saving\u2026" : "Adding\u2026") : (mode === "edit" ? "Save" : "Add it")}
+              {!isSubmitting && (
+                <kbd
+                  aria-hidden="true"
+                  className="hidden lg:inline-flex items-center justify-center min-w-[1.25rem] h-[1.25rem] px-[var(--space-1)] rounded-[var(--radius-sm)] bg-[var(--color-accent-hover)] text-[length:var(--text-xs)] font-[var(--weight-medium)] text-[color:var(--color-accent-text)] opacity-80 leading-none"
+                >
+                  ↵
+                </kbd>
+              )}
             </button>
           </div>
 

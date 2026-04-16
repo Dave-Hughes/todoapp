@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 
 export interface ConfirmDialogAction {
   label: string;

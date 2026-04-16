@@ -4,22 +4,32 @@ import { motion, AnimatePresence, useReducedMotion, type PanInfo } from "framer-
 import { EASE_OUT_QUART } from "../../lib/motion";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Clock, CalendarClock, Check, ArrowRight, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Clock, CalendarClock, Check, ArrowRight, MoreVertical, Pencil, Trash2, RotateCw, UsersRound } from "lucide-react";
 import { Checkbox } from "../checkbox/checkbox";
 import { Avatar } from "../avatar/avatar";
 import { Tooltip } from "../tooltip/tooltip";
+import { formatRepeatRule } from "../repeat-picker/format-repeat";
+import type { RepeatRule } from "../repeat-picker/parse-repeat";
 
 export interface Task {
   id: string;
   title: string;
   dueTime?: string;
   flexible: boolean;
+  /** Display name of the single assignee. `undefined` when shared (see `isShared`) or truly unassigned. */
   assigneeName?: string;
+  /** Task is assigned to both partners. Renders a two-person circle instead of an avatar. */
+  isShared?: boolean;
   categoryName?: string;
   completedAt?: string;
   completedByName?: string;
   createdByName: string;
   overdueDays?: number;
+  repeatRule?: RepeatRule | null;
+  /** Point value earned on completion. Hidden on the row when 0. */
+  points?: number | null;
+  /** Free-form notes. Not rendered on the row; needed for edit-sheet round-tripping. */
+  notes?: string | null;
 }
 
 interface TaskListItemProps {
@@ -167,6 +177,20 @@ export function TaskListItem({
     }, delay);
   }, [isCompleting, shouldReduceMotion, onComplete]);
 
+  // True between drag-start and the click that follows the drag-end.
+  // Prevents quick swipes from also firing the title's onClick → edit sheet.
+  const wasDraggedRef = useRef(false);
+
+  const handleDragStart = useCallback(() => {
+    wasDraggedRef.current = false;
+  }, []);
+
+  const handleDrag = useCallback((_: unknown, info: PanInfo) => {
+    // 4px is the smallest movement we consider a "real" drag (matches Framer's
+    // default minimum). Below that, the gesture should still register as a tap.
+    if (Math.abs(info.offset.x) > 4) wasDraggedRef.current = true;
+  }, []);
+
   const handleDragEnd = useCallback((_: unknown, info: PanInfo) => {
     const { offset } = info;
     if (offset.x > SWIPE_THRESHOLD && !isDone) {
@@ -175,6 +199,14 @@ export function TaskListItem({
       onPostpone(task.id);
     }
   }, [isDone, celebrateAndComplete, onPostpone, task.id]);
+
+  const handleTitleClick = useCallback(() => {
+    if (wasDraggedRef.current) {
+      wasDraggedRef.current = false;
+      return;
+    }
+    onTap(task.id);
+  }, [onTap, task.id]);
 
   return (
     <div
@@ -211,6 +243,8 @@ export function TaskListItem({
         dragConstraints={{ left: -150, right: 150 }}
         dragElastic={0.2}
         dragSnapToOrigin
+        onDragStart={handleDragStart}
+        onDrag={handleDrag}
         onDragEnd={handleDragEnd}
         {...(showSwipeHint && hintPlayed && !isDone
           ? {
@@ -244,34 +278,26 @@ export function TaskListItem({
         {/* Task info */}
         <button
           type="button"
-          onClick={() => onTap(task.id)}
+          onClick={handleTitleClick}
           className="flex-1 min-w-0 text-left cursor-pointer bg-transparent border-none p-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)] rounded-[var(--radius-sm)] group/edit"
           aria-label={`Edit "${task.title}"`}
         >
-          <div className="flex items-center gap-[var(--space-2)]">
-            <p
-              className={`
-                text-[length:var(--text-base)] font-[var(--weight-medium)] leading-[var(--leading-tight)]
-                truncate
-                ${
-                  isDone
-                    ? "line-through text-[color:var(--color-text-disabled)] font-[var(--weight-normal)]"
-                    : "text-[color:var(--color-text-primary)]"
-                }
-              `}
-            >
-              {task.title}
-            </p>
-            <Pencil
-              size={12}
-              strokeWidth={2}
-              aria-hidden="true"
-              className="hidden lg:block shrink-0 opacity-0 group-hover/edit:opacity-40 transition-opacity duration-[var(--duration-instant)] text-[color:var(--color-text-tertiary)]"
-            />
-          </div>
+          <p
+            className={`
+              text-[length:var(--text-base)] font-[var(--weight-medium)] leading-[var(--leading-tight)]
+              truncate underline-offset-[3px] decoration-[color:var(--color-text-tertiary)]
+              ${
+                isDone
+                  ? "line-through text-[color:var(--color-text-disabled)] font-[var(--weight-normal)]"
+                  : "text-[color:var(--color-text-primary)] lg:group-hover/edit:underline"
+              }
+            `}
+          >
+            {task.title}
+          </p>
 
           {/* Metadata — minimal, scannable */}
-          {((!isDone && (task.dueTime || task.categoryName || (task.overdueDays && task.overdueDays > 0))) || (isDone && task.completedByName)) && (
+          {((!isDone && (task.dueTime || task.categoryName || task.repeatRule || (task.points && task.points > 0) || (task.overdueDays && task.overdueDays > 0))) || (isDone && task.completedByName)) && (
             <div className="flex items-center gap-[var(--space-2)] mt-[var(--space-0-5)]">
               {task.dueTime && !isDone && (
                 <span className="inline-flex items-center gap-[var(--space-0-5)] text-[length:var(--text-xs)] text-[color:var(--color-text-secondary)] tabular-nums">
@@ -280,10 +306,35 @@ export function TaskListItem({
                 </span>
               )}
 
+              {task.repeatRule && !isDone && (
+                <span
+                  className="inline-flex items-center gap-[var(--space-0-5)] text-[length:var(--text-xs)] text-[color:var(--color-text-secondary)]"
+                  aria-label={`Repeats: ${formatRepeatRule(task.repeatRule)}`}
+                >
+                  <RotateCw size={11} strokeWidth={2} aria-hidden="true" className="opacity-50" />
+                  {formatRepeatRule(task.repeatRule)}
+                </span>
+              )}
+
               {task.overdueDays && task.overdueDays > 0 && !isDone && (
                 <span className="inline-flex items-center gap-[var(--space-0-5)] px-[var(--space-1-5)] rounded-[var(--radius-full)] bg-[var(--color-warning-subtle)] text-[length:var(--text-xs)] leading-[var(--leading-tight)] text-[color:var(--color-warning)]">
                   <CalendarClock size={10} strokeWidth={2} aria-hidden="true" />
                   {getOverdueLabel(task.overdueDays)}
+                </span>
+              )}
+
+              {task.points != null && task.points > 0 && !isDone && (
+                <span
+                  className="
+                    inline-flex items-center
+                    px-[var(--space-1-5)] rounded-[var(--radius-full)]
+                    bg-[var(--color-accent-subtle)] text-[color:var(--color-accent-hover)]
+                    text-[length:var(--text-xs)] leading-[var(--leading-tight)] font-[var(--weight-semibold)]
+                    tabular-nums
+                  "
+                  aria-label={`Worth ${task.points} ${task.points === 1 ? "point" : "points"}`}
+                >
+                  {task.points}&nbsp;pts
                 </span>
               )}
 
@@ -421,10 +472,9 @@ export function TaskListItem({
                           px-[var(--space-4)] py-[var(--space-2)]
                           text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-text-primary)]
                           hover:bg-[var(--color-canvas)]
-                          rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
-                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
+                          outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                         "
                       >
                         <Pencil size={15} strokeWidth={2} className="text-[color:var(--color-text-secondary)]" />
@@ -445,10 +495,9 @@ export function TaskListItem({
                           px-[var(--space-4)] py-[var(--space-2)]
                           text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-text-primary)]
                           hover:bg-[var(--color-success-subtle)]
-                          rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
-                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
+                          outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                           ${isDone ? "opacity-40 cursor-not-allowed" : ""}
                         `}
                       >
@@ -470,10 +519,9 @@ export function TaskListItem({
                           px-[var(--space-4)] py-[var(--space-2)]
                           text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-text-primary)]
                           hover:bg-[var(--color-warning-subtle)]
-                          rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
-                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
+                          outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                           ${isDone ? "opacity-40 cursor-not-allowed" : ""}
                         `}
                       >
@@ -493,10 +541,9 @@ export function TaskListItem({
                           px-[var(--space-4)] py-[var(--space-2)]
                           text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-destructive)]
                           hover:bg-[var(--color-destructive-subtle)]
-                          rounded-[var(--radius-sm)]
                           transition-colors duration-[var(--duration-instant)]
                           min-h-[var(--touch-target-min)]
-                          outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
+                          outline-none focus-visible:ring-inset focus-visible:ring-2 focus-visible:ring-[var(--color-border-focus)]
                         "
                       >
                         <Trash2 size={15} strokeWidth={2} />
@@ -509,8 +556,17 @@ export function TaskListItem({
           )}
         </div>
 
-        {/* Assignee avatar — only shown when assigned */}
-        {showAssignee && task.assigneeName && (
+        {/* Assignee indicator — avatar for single assignee, two-person circle for shared */}
+        {showAssignee && task.isShared && (
+          <div
+            role="img"
+            aria-label="Shared with partner"
+            className={`inline-flex shrink-0 items-center justify-center h-7 w-7 rounded-[var(--radius-full)] bg-[var(--color-accent-subtle)] text-[color:var(--color-accent-hover)] ${isDone ? "opacity-40" : ""}`}
+          >
+            <UsersRound size={14} strokeWidth={2} aria-hidden="true" />
+          </div>
+        )}
+        {showAssignee && !task.isShared && task.assigneeName && (
           <Avatar name={task.assigneeName} size="sm" className={isDone ? "opacity-40" : ""} />
         )}
       </motion.div>

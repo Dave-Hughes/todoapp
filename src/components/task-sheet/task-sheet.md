@@ -22,7 +22,7 @@ Designed for 2-second task capture: type a title → Enter → done. The sheet i
 | `onClose` | `() => void` | required | Called on dismiss: Esc, backdrop tap, drag-down, X button. Silent discard — nothing was saved. |
 | `onSubmit` | `(data: TaskFormData) => Promise<void> \| void` | required | Called with all form fields on submit. Parent handles optimistic UI + server sync. Return a rejected Promise to trigger error rollback. |
 | `mode` | `"create" \| "edit"` | `"create"` | `"edit"` shows "Editing" header, "Save" CTA, auto-expands More if fields populated, and shows Delete button. |
-| `initialData` | `Partial<TaskFormData>` | — | Pre-populate fields for edit mode. Ignored in create mode. |
+| `initialData` | `Partial<TaskFormData>` | — | Pre-populate fields. In **edit** mode, all fields seed from here. In **create** mode only `date` is honored so callers can implement context-aware task creation (Week/Month views pre-fill the day the user is looking at); other fields always reset to their create defaults. |
 | `onDelete` | `() => void` | — | Called when the Delete button is tapped in edit mode. Parent handles confirmation and deletion. |
 | `userName` | `string` | `"Me"` | Current user's display name (used by AssigneePicker). |
 | `partnerName` | `string` | `"Krista"` | Partner's display name (used by AssigneePicker). |
@@ -174,3 +174,5 @@ src/components/task-sheet/
 | 2026-04-14 | Phase 2: Inline pickers for Date (calendar grid + presets), Assignee (listbox), Category (listbox). Expanded section with time stepper, flexible toggle, notes textarea, auto-fill points. Popover primitive. TaskChip active state + aria-expanded. `onSubmit` now receives `TaskFormData` instead of bare string. Mobile date picker uses secondary BottomSheet. |
 | 2026-04-14 | Phase 3: Repeat picker with NLP. Presets (Daily, Weekdays, Weekly, Monthly) + natural language text input for custom rules. Client-side parser handles "every Tuesday and Thursday", "every 3 days", "monthly on the 15th", etc. `TaskFormData` extended with `repeatRule: RepeatRule \| null`. |
 | 2026-04-14 | Phase 4: Edit mode — header ("New task" / "Editing"), `initialData` replaces `initialTitle`, CTA/hint variants ("Save" / "↵ to save"), auto-expand More when expanded fields have values, Delete button in edit mode, `onDelete` callback. |
+| 2026-04-15 | Phase 5: `initialData.date` is now honored in create mode so Week/Month views can pre-fill the day the user is looking at (context-aware task creation). All other fields still reset to defaults on create. |
+| 2026-04-15 | Lint fix: three effects (mobile media-query detection, form-state reset on open, auto-points sync) changed from `useEffect` to `useIsoLayoutEffect` to satisfy `react-hooks/set-state-in-effect`. Removed unused `shouldReduceMotion` (`useReducedMotion` import dropped). |

@@ -31,10 +31,6 @@ const COMPLETION_TOAST_RE = /Nice\. One less thing\.|Done and done\.|Off the lis
 // Helpers
 // ---------------------------------------------------------------------------
 
-async function getTaskCount(page: Page, section: string) {
-  const sectionEl = page.getByRole("region", { name: section });
-  return sectionEl.locator('[role="checkbox"]').count();
-}
 
 async function completeTask(page: Page, taskTitle: string) {
   const checkbox = page
@@ -126,12 +122,14 @@ test.describe("Desktop layout", () => {
     await expect(sidebar).toBeVisible();
   });
 
-  test("sidebar displays partner names when expanded", async ({ page }) => {
-    // The sidebar is in peek state by default — hover to expand and reveal names.
+  test("sidebar displays partner names when expanded (pinned)", async ({ page }) => {
+    // Post-2026-04-15: the hover-to-expand peek affordance was removed.
+    // The sidebar is binary — collapsed (72px) or pinned open (272px).
+    // Click the pin button to expand and reveal partner names.
     await page.goto("/");
     const sidebar = page.locator("aside");
-    await sidebar.hover();
-    // Name labels render with CSS text-transform: uppercase; DOM text is title-case.
+    await page.getByRole("button", { name: /Pin sidebar/ }).click();
+    await page.waitForTimeout(400);
     await expect(sidebar.getByText("Dave", { exact: true })).toBeVisible();
     await expect(sidebar.getByText("Krista", { exact: true })).toBeVisible();
   });
@@ -172,30 +170,28 @@ test.describe("Desktop layout", () => {
     expect(box!.width).toBeLessThanOrEqual(80);
   });
 
-  test("sidebar expands to full width on hover", async ({ page }) => {
+  test("sidebar does NOT expand on hover (peek removed)", async ({ page }) => {
+    // The hover-to-expand peek was removed. Hovering must leave the rail
+    // collapsed so route transitions don't flash mid-hover.
     await page.goto("/");
     const sidebar = page.locator("aside");
     await sidebar.hover();
-    // Wait for the 280ms width animation to settle.
     await page.waitForTimeout(400);
     const box = await sidebar.boundingBox();
     expect(box).not.toBeNull();
-    // --sidebar-width = 17rem = 272px
-    expect(box!.width).toBeGreaterThanOrEqual(260);
+    expect(box!.width).toBeLessThanOrEqual(80);
   });
 
-  test("sidebar pin button locks the expanded state", async ({ page }) => {
+  test("sidebar pin button expands and locks the open state", async ({ page }) => {
     await page.goto("/");
-    await page.locator("aside").hover();
-    await page.waitForTimeout(400);
     await page.getByRole("button", { name: /Pin sidebar/ }).click();
-    // Move mouse far away — a hovered (unpinned) rail would collapse back.
+    // Move mouse far away — the rail must stay expanded now that it's pinned.
     await page.mouse.move(1000, 500);
     await page.waitForTimeout(400);
     const box = await page.locator("aside").boundingBox();
     expect(box!.width).toBeGreaterThanOrEqual(260);
     await expect(
-      page.getByRole("button", { name: /Unpin sidebar/ })
+      page.getByRole("button", { name: /Collapse sidebar/ })
     ).toBeVisible();
   });
 
@@ -230,7 +226,7 @@ test.describe("Desktop layout", () => {
 
   test("does NOT show bottom tab bar on desktop", async ({ page }) => {
     await page.goto("/");
-    const bottomNav = page.locator("nav").filter({ hasText: "Today" }).last();
+    page.locator("nav").filter({ hasText: "Today" }).last();
     // The bottom nav should be hidden via lg:hidden
     const navs = page.locator('nav[aria-label="Main navigation"]');
     const count = await navs.count();
@@ -240,7 +236,7 @@ test.describe("Desktop layout", () => {
 
   test("does NOT show FAB on desktop", async ({ page }) => {
     await page.goto("/");
-    const fab = page.getByRole("button", { name: "Add task" }).last();
+    page.getByRole("button", { name: "Add task" }).last();
     // FAB has lg:hidden so should not be visible at desktop width
     // But the desktop "Add task" button IS visible
     // Check that we only see one visible "Add task" button
@@ -1524,7 +1520,7 @@ test.describe("Design system integrity", () => {
     page,
   }) => {
     await page.goto("/");
-    const hasPureWhite = await page.evaluate(() => {
+    await page.evaluate(() => {
       const all = document.querySelectorAll("*");
       for (const el of all) {
         const style = getComputedStyle(el);

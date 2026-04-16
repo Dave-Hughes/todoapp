@@ -3,7 +3,17 @@
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@/db/schema";
 
-type MeResponse = { me: User; partner: User | null };
+export interface PointsTotals {
+  lifetime: number;
+  today: number;
+}
+
+export type MeResponse = {
+  me: User;
+  partner: User | null;
+  mePoints: PointsTotals;
+  partnerPoints: PointsTotals | null;
+};
 
 async function fetchMe(): Promise<MeResponse> {
   const res = await fetch("/api/me", { cache: "no-store" });

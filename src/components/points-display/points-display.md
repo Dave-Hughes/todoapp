@@ -33,12 +33,11 @@ Same props as SidebarPoints.
 | One active | Delta on active partner only |
 | No activity today | Totals only, no deltas |
 | Solo user | Single row, no partner line |
-| Points change | Animated counter (300ms, ease-out-quart) |
-| Reduced motion | Instant number update, no animation |
+| Points change | Number snaps to new value (animation temporarily removed — see below) |
 
 ## Animation
 
-The `AnimatedNumber` internal component counts from the previous value to the new value over 300ms using ease-out-quart. This fires on task completion (optimistic UI). Under `prefers-reduced-motion`, the number updates instantly.
+The `AnimatedNumber` internal component currently renders the value statically. The previous RAF-driven count-up was incompatible with the live data flow: TanStack Query polling + per-mutation invalidations briefly toggle `meData` to `undefined`, which makes the page fall back to `userPoints={0}` for a render. That oscillation cancels the in-flight RAF chain before any tick fires, leaving `display` stuck at `0`. A robust count-up needs a stable input (e.g. `useDeferredValue` over a debounced source). Tracked as polish follow-up; the +N today badge already provides the "you earned points" cue.
 
 ## Design decisions
 

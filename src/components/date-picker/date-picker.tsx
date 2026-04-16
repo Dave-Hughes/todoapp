@@ -48,7 +48,7 @@ function getMonthGrid(year: number, month: number): Date[][] {
   const start = startOfWeek(first);
 
   const weeks: Date[][] = [];
-  let current = new Date(start);
+  const current = new Date(start);
 
   while (current <= last || weeks.length < 6) {
     const week: Date[] = [];
@@ -130,17 +130,6 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
     btn?.focus();
   }, [focusedDate]);
 
-  /* Navigate the focused date when it goes out of view */
-  useEffect(() => {
-    if (
-      focusedDate.getFullYear() !== viewYear ||
-      focusedDate.getMonth() !== viewMonth
-    ) {
-      setViewYear(focusedDate.getFullYear());
-      setViewMonth(focusedDate.getMonth());
-    }
-  }, [focusedDate, viewYear, viewMonth]);
-
   function handleGridKeyDown(e: React.KeyboardEvent) {
     let next: Date | null = null;
 
@@ -185,6 +174,11 @@ export function DatePicker({ value, onChange }: DatePickerProps) {
     if (next) {
       e.preventDefault();
       setFocusedDate(next);
+      // Keep the calendar view in sync when focused date leaves current month
+      if (next.getFullYear() !== viewYear || next.getMonth() !== viewMonth) {
+        setViewYear(next.getFullYear());
+        setViewMonth(next.getMonth());
+      }
     }
   }
 

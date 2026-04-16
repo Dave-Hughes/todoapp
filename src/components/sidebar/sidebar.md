@@ -13,20 +13,14 @@ The persistent left-rail navigation for desktop viewports (≥ `lg`). Acts as th
 
 ## Behavior
 
-The sidebar has two primary width modes:
+The sidebar has two binary width modes, driven solely by the pin toggle:
 
-- **Peek** (default, `--sidebar-width-peek` = 72px). Collapsed. Shows the logo mark, compressed tally numerals, nav icons, a compact invite affordance (solo), settings icon, and the pin toggle.
-- **Expanded** (`--sidebar-width` = 272px). Shows the full masthead: wordmark, partner names as labels, today's deltas, nav labels + contextual stats, invite CTA, settings label.
+- **Collapsed** (default, `--sidebar-width-peek` = 72px). Icons-only rail. Shows the logo mark, compressed tally numerals, nav icons, a compact invite affordance (solo), settings icon, and the pin toggle.
+- **Pinned** (`--sidebar-width` = 272px). Full masthead: wordmark, partner names as labels, today's deltas, nav labels + contextual stats, invite CTA, settings label. Main content shifts to accommodate.
 
-Triggers that flip peek → expanded:
+Toggle with the pin button or `⌘\` / `Ctrl+\`. The keyboard shortcut is handled in `AppShell` and ignored while focus is inside an `<input>`, `<textarea>`, or contenteditable so it doesn't disrupt task entry.
 
-- **Hover** the rail anywhere. Expands with an ease-out-quart transition and floats *over* content (main content does not shift).
-- **Focus within** the rail (keyboard). Treated the same as hover so tab navigation reveals labels.
-- **Pinned** (via the pin toggle or `⌘\` / `Ctrl+\` keyboard shortcut). Locks expanded state. When pinned, main content shifts to accommodate the full width. The pin button shows an accent tint when active.
-
-The keyboard shortcut is handled in `AppShell` and ignored while focus is inside an `<input>`, `<textarea>`, or contenteditable so it doesn't disrupt task entry.
-
-Mouseleave or blur collapses back to peek, unless pinned.
+The earlier hover-to-expand "peek" affordance was removed — it caused the rail to flash during route transitions and felt disorienting. The sidebar is now strictly open or closed.
 
 ## Props
 
@@ -50,9 +44,8 @@ Mouseleave or blur collapses back to peek, unless pinned.
 
 | State | Behavior |
 |---|---|
-| Peek (default) | 72px rail. Icons, compressed numerals, pin toggle visible. |
-| Hover-expanded (unpinned) | Grows to 272px, floats above content with `shadow-lg`, mouseleave collapses. |
-| Pinned | Locked at 272px. `shadow-lg` is not applied; main content shifts to accommodate. Pin icon swaps to `PanelLeftClose`. |
+| Collapsed (default) | 72px rail. Icons, compressed numerals, pin toggle visible. |
+| Pinned | 272px. Main content shifts to accommodate. Pin icon swaps to `PanelLeftClose`. |
 | Solo (no partner) | Points hero shows only user's tally. In expanded, the invite CTA renders above utility; in peek, a single accented `UserPlus` icon sits above Settings. |
 | Paired | Full twin-tally points hero with connector mark. No invite CTA. |
 | Active nav | Active row has a `canvas`-colored inset panel (not a pill, not a left border), accent-colored icon, and display-weight label. `aria-current="page"` set. |
@@ -100,7 +93,9 @@ Mouseleave or blur collapses back to peek, unless pinned.
 />
 ```
 
-In practice, `Sidebar` is always rendered by `AppShell` — which owns `isPinned` and `onTogglePin` and persists pin state in `localStorage` under `todoapp:sidebar-pinned`.
+In practice, `Sidebar` is always rendered by `AppShell`, which is hoisted into `src/app/(views)/layout.tsx` as a shared layout. AppShell owns `isPinned` and `onTogglePin` and persists pin state in `localStorage` under `todoapp:sidebar-pinned`. Because the layout is shared, the Sidebar DOM node survives route changes — it does **not** remount when navigating between `/today` and `/week`.
+
+This is also why all nav links here (Today, Week, Month, Settings) use `next/link` `<Link>` components instead of plain `<a href>`. A plain anchor triggers a full page reload, which blows away the shared layout and causes the sidebar to flash/reanimate on every nav.
 
 ## Do / Don't
 
@@ -121,3 +116,6 @@ In practice, `Sidebar` is always rendered by `AppShell` — which owns `isPinned
 | 2026-04-12 | Initial implementation: 272px rail with avatar + inline points + compact nav. |
 | 2026-04-13 | Rebuilt from scratch. Peek (72px) / expanded (272px) rail with hover + pin states, logo mark + wordmark, hero typographic points display with connector, weighted nav with contextual stats, architectural active state (no left-border), bottom utility with pin toggle. |
 | 2026-04-13 | Post-critique: fixed-height points hero so nav rows don't shift on hover; identical "standard menu item" layout for Settings + Pin rows so icons stay aligned across states; pin button gets accent-tinted active state; ⌘\ / Ctrl+\ keyboard shortcut to toggle pin; shared `Tooltip` component wired to the pin button with shortcut hint. |
+| 2026-04-15 | Removed the hover-to-expand "peek" behavior (including the floating `shadow-lg` state). Sidebar is now strictly pinned or collapsed — toggle via the pin button or `⌘\` / `Ctrl+\`. Dropped the Wiki utility link (internal-only; reachable via direct URL). Pinned bit now read via `useLayoutEffect` in `AppShell` so the sidebar doesn't flash collapsed-then-pinned on every route change. |
+| 2026-04-15 | Pin label changed from "Unpin sidebar" → **"Collapse sidebar"** when pinned. "Pin sidebar open" when collapsed. Swapped `motion.aside` for plain `<aside>` with a Tailwind CSS width transition — Framer Motion v12 doesn't interpolate between two CSS-variable strings on `animate.width`, which left the rail stuck at peek width even when `isPinned=true`. CSS transitions handle `var()` values correctly. |
+| 2026-04-15 | Nav links (Today / Week / Month / Settings) converted from plain `<a href>` to `next/link` `<Link>`. With the shared-layout refactor in `src/app/(views)/layout.tsx` the sidebar stays mounted across navigation — plain anchors would trigger a full reload and defeat that. |

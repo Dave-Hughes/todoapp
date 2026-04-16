@@ -625,7 +625,7 @@ test.describe("Task sheet — date picker", () => {
     await expect(grid).not.toBeVisible();
   });
 
-  test("preset buttons exist in the date picker", async ({ page, browserName }, testInfo) => {
+  test("preset buttons exist in the date picker", async ({ page }, testInfo) => {
     const isMobileProject = testInfo.project.name.startsWith("mobile");
     test.skip(isMobileProject, "Desktop date picker only");
     await page.goto("/");

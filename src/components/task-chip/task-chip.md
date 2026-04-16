@@ -39,7 +39,7 @@ Used exclusively inside `TaskSheet`'s chip row.
 
 - `type="button"` — never implicitly submits the enclosing form.
 - `aria-label` is always required and must be distinct from the visible label. "Today" as a visible label → "Set due date" as `aria-label`.
-- Icon span is `aria-hidden="true"` — the emoji/icon is decorative; the label carries the meaning.
+- Icon span is `aria-hidden="true"` — the icon is decorative; the label carries the meaning.
 - Touch target `min-h-[var(--touch-target-min)]` (44px) — meets WCAG 2.5.5.
 - Focus ring uses `:focus-visible` — appears only for keyboard navigation, not mouse clicks.
 
@@ -50,14 +50,14 @@ import { TaskChip } from "@/components/task-chip/task-chip";
 
 // Phase 1: no-op (no onClick)
 <TaskChip
-  icon="📅"
+  icon={<Calendar size={14} strokeWidth={2} aria-hidden="true" />}
   label="Today"
   ariaLabel="Set due date"
 />
 
 // Phase 2: with picker handler
 <TaskChip
-  icon="📅"
+  icon={<Calendar size={14} strokeWidth={2} aria-hidden="true" />}
   label="Today"
   ariaLabel="Set due date"
   onClick={() => openDatePicker()}
@@ -81,3 +81,4 @@ import { TaskChip } from "@/components/task-chip/task-chip";
 | 2026-04-13 | Initial implementation. Phase 1: visual chip with hover/focus/active/disabled states. No-op onClick. Ready for Phase 2 picker wiring. |
 | 2026-04-13 | Phase 1b: Removed inline fallback `var(--space-1-5, 0.375rem)`. Token `--space-1-5` (6px) is now a first-class entry in `tokens.css` with documentation. No visual change. |
 | 2026-04-14 | Phase 2: Added `isActive` prop for picker-open state. Added `aria-expanded`. Converted to `forwardRef` so parent can hold ref for Popover anchoring. Active state uses accent-subtle bg + accent border. |
+| 2026-04-14 | Replaced emoji icons in `TaskSheet` chip row with Lucide icons (`Calendar`, `UserRound`, `Tag`, `RotateCw`) for consistency with the rest of the app and to remove platform-specific emoji rendering. Component is unchanged — `icon` prop still accepts any `ReactNode`. |

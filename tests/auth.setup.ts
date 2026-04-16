@@ -103,7 +103,10 @@ setup("authenticate", async ({ page }) => {
     );
   }
 
-  await page.goto("/");
-  await page.waitForURL("/");
+  // After Phase 5, "/" is a server redirect to "/today". Navigate directly
+  // to the post-redirect URL so the storage state is captured once the app
+  // shell has rendered for a signed-in user.
+  await page.goto("/today");
+  await page.waitForURL("/today");
   await page.context().storageState({ path: AUTH_FILE });
 });

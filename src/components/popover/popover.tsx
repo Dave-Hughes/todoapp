@@ -5,6 +5,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useLayoutEffect,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
@@ -30,6 +31,8 @@ export interface PopoverProps {
   /** Additional className for the popover container. */
   className?: string;
 }
+
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 const OFFSET = 8;
 const VIEWPORT_PADDING = 8;
@@ -105,7 +108,7 @@ export function Popover({
   }, [anchorRef, placement]);
 
   /* Initial position: render off-screen to measure, then reposition */
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     if (!isOpen) {
       setPos(null);
       return;
@@ -115,7 +118,7 @@ export function Popover({
   }, [isOpen]);
 
   /* Once the popover renders (even off-screen), measure and reposition */
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     if (!isOpen || !pos) return;
     if (pos.top === -9999) {
       // Element is now in DOM — measure and compute real position

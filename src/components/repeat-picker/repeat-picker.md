@@ -138,3 +138,4 @@ import { Popover } from "../popover/popover";
 | Date | Change |
 |---|---|
 | 2026-04-14 | Initial implementation — Phase 3. Presets + NLP input. |
+| 2026-04-15 | Lint fix: pre-populate effect changed from `useEffect` to `useIsoLayoutEffect`. Focus-on-mount effect captures `value` in a ref (`initialValueRef`) to satisfy `react-hooks/exhaustive-deps` without re-running on value changes. Removed stale `eslint-disable` directive. |

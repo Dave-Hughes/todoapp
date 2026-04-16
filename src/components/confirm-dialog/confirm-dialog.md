@@ -42,3 +42,4 @@ A lightweight centered modal dialog for confirming destructive actions (e.g., de
 | Date | Change |
 |---|---|
 | 2026-04-14 | Phase 4: Initial implementation for delete confirmation flows. |
+| 2026-04-15 | Lint fix: removed unused `useCallback` import. |

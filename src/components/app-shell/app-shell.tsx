@@ -1,11 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { Sidebar } from "../sidebar/sidebar";
 import { BottomTabs } from "../bottom-tabs/bottom-tabs";
 import { MobileHeader } from "../mobile-header/mobile-header";
 
 const PIN_STORAGE_KEY = "todoapp:sidebar-pinned";
+
+// useLayoutEffect on the server logs a warning. The sidebar only renders on
+// desktop and the pin bit needs to be read BEFORE paint to avoid a flash from
+// collapsed → pinned on every route change. During SSR there's no paint to
+// worry about, so useEffect is a safe fallback.
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -38,7 +44,11 @@ export function AppShell({
 }: AppShellProps) {
   const [isPinned, setIsPinned] = useState(false);
 
-  useEffect(() => {
+  // Read the saved pin bit BEFORE first paint so navigating between routes
+  // doesn't flash a collapsed → pinned transition each time AppShell remounts.
+  // (AppShell is rendered per-page, not in a shared layout, so it remounts
+  // on every navigation.)
+  useIsoLayoutEffect(() => {
     try {
       const raw = window.localStorage.getItem(PIN_STORAGE_KEY);
       if (raw === "1") setIsPinned(true);
@@ -142,6 +152,13 @@ export function AppShell({
         "
       >
         <div className="px-[var(--space-4)] lg:px-[var(--space-8)] py-[var(--space-4)] lg:py-[var(--space-8)]">
+          {/*
+           * No view-switch animation. Route changes swap {children}
+           * instantly. See "View-switch transition" in app-shell.md for
+           * the history of attempts (opacity fade, direction-aware
+           * horizontal slide, asymmetric retimed fade) and the bugs
+           * that led to removing it.
+           */}
           {children}
         </div>
       </main>

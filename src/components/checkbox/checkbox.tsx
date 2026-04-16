@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { EASE_OUT_QUART } from "../../lib/motion";
 
@@ -26,15 +26,14 @@ export function Checkbox({
 }: CheckboxProps) {
   const shouldReduceMotion = useReducedMotion();
   const [celebrateKey, setCelebrateKey] = useState(0);
-  const wasCheckedRef = useRef(checked);
 
-  // Fire bloom only on check (not uncheck)
-  useEffect(() => {
-    if (checked && !wasCheckedRef.current) {
+  function handleClick() {
+    // Fire bloom only on check (not uncheck)
+    if (!checked) {
       setCelebrateKey((k) => k + 1);
     }
-    wasCheckedRef.current = checked;
-  }, [checked]);
+    onChange(!checked);
+  }
 
   return (
     <button
@@ -42,7 +41,7 @@ export function Checkbox({
       aria-checked={checked}
       aria-label={label}
       disabled={disabled}
-      onClick={() => onChange(!checked)}
+      onClick={handleClick}
       className={`
         checkbox-touch-target
         relative inline-flex items-center justify-center shrink-0

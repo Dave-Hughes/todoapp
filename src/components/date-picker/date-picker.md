@@ -64,3 +64,4 @@ Calendar grid with preset row for date selection. Used inside Popover (desktop) 
 ## Changelog
 
 - **Phase 2**: Initial implementation. Calendar grid with presets, full keyboard navigation, OKLCH theme tokens.
+- **2026-04-15**: Lint fix: `let current` → `const current` in `getMonthGrid`. Removed the `useEffect` that synced `viewYear`/`viewMonth` when `focusedDate` left the current month — moved that logic into `handleGridKeyDown` alongside `setFocusedDate`. Satisfies `react-hooks/set-state-in-effect` and `prefer-const`.

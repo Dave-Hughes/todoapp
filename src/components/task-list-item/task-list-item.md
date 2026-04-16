@@ -32,12 +32,15 @@ interface Task {
   title: string;
   dueTime?: string;          // e.g. "3:00 PM"
   flexible: boolean;
-  assigneeName?: string;
+  assigneeName?: string;     // undefined when shared or truly unassigned
+  isShared?: boolean;        // true → shared with partner; renders a two-person circle
   categoryName?: string;
   completedAt?: string;
   completedByName?: string;  // shown in done variant
   createdByName: string;
   overdueDays?: number;      // > 0 triggers the overdue label
+  repeatRule?: RepeatRule | null;  // present → row shows a repeat indicator
+  points?: number | null;    // > 0 renders a small "N pts" chip in metadata
 }
 ```
 
@@ -54,6 +57,7 @@ interface Task {
 | Swipe postpone (left ≥ 80px) | `onPostpone` fires, swipe offset resets to 0. |
 | Done variant | No drag, strikethrough title, tertiary text, "completed by" name in metadata. |
 | Overdue | Warning-colored overdue label with RotateCcw icon. |
+| Repeating | Secondary-text chip in the metadata row with `RotateCw` icon and the formatted rule (e.g. "Every day", "Weekdays", "Mon & Wed"). Suppressed in done variant. |
 | Reduced motion | All Framer Motion transitions `duration: 0`. Drag still works; no spring return animation. |
 
 ## Accessibility
@@ -118,3 +122,6 @@ interface Task {
 | 2026-04-12 | Added overflow menu (three-dot, portal-rendered) with Complete/Postpone actions. Keyboard nav (arrow keys, Escape, Tab). Desktop inline actions now always in DOM with CSS visibility toggle. Completion micro-celebration (150ms hold). Raw spacing values replaced with `--space-0-5` token. |
 | 2026-04-12 | Added `showSwipeHint` prop for one-time swipe discovery nudge animation. Unassigned tasks now show a dashed-circle + icon placeholder instead of empty space. Overflow menu items renamed to "Done"/"Tomorrow" with semantic hover colors (`success-subtle`/`warning-subtle`), larger radius, and more generous padding. |
 | 2026-04-14 | Phase 4: Expanded overflow menu (Edit, Done, Tomorrow, Delete with divider). Inline delete confirmation. Done-variant tasks get the menu with Done/Tomorrow disabled. Task content area is now a `<button>` for tap-to-edit. Arrow-key nav skips disabled items. `onDelete` prop added. |
+| 2026-04-14 | Added `repeatRule` field to `Task`. When present (and not done), the metadata row shows a secondary-text chip with `RotateCw` icon and the formatted rule via `formatRepeatRule()`. Restores parity between create and edit — repeating tasks now read as repeating from the row and the edit sheet pre-populates correctly. |
+| 2026-04-14 | Title `<button>` no longer fires `onTap` when a swipe gesture has moved the row by >4px. A `wasDraggedRef` is set during `onDragStart`/`onDrag` and consumed by the title's `onClick`. Fixes the bug where quick swipes-to-complete also opened the edit sheet. |
+| 2026-04-14 | Added `points` and `isShared` fields to `Task`. Points > 0 render a small pill chip in the metadata row (`accent-subtle` bg, `accent-hover` text, tabular-nums, "N pts"). Shared tasks now render a two-person `UsersRound` circle (same 28px footprint as the avatar, `accent-subtle` bg) instead of the partner's avatar — fixes a bug where shared tasks read as "assigned to partner." |

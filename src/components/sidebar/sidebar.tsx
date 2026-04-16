@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ComponentType, type SVGProps } from "react";
+import { type ComponentType, type SVGProps } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   CalendarDays,
@@ -319,7 +320,7 @@ function NavRow({
 }) {
   const Icon = item.icon;
   return (
-    <a
+    <Link
       href={item.path}
       aria-current={isActive ? "page" : undefined}
       aria-label={item.label}
@@ -412,7 +413,7 @@ function NavRow({
           </motion.span>
         )}
       </AnimatePresence>
-    </a>
+    </Link>
   );
 }
 
@@ -434,7 +435,7 @@ function UtilityRow({
 }) {
   const settingsActive = activePath === "/settings";
   const PinIcon = isPinned ? PanelLeftClose : PanelLeftOpen;
-  const pinLabel = isPinned ? "Unpin sidebar" : "Pin sidebar open";
+  const pinLabel = isPinned ? "Collapse sidebar" : "Pin sidebar open";
 
   return (
     <div className="px-[var(--space-2)] pb-[var(--space-3)] flex flex-col gap-[var(--space-1)]">
@@ -491,7 +492,7 @@ function UtilityRow({
           with icon + label left-aligned. */}
       <div className="flex flex-col gap-[var(--space-1)]">
         {/* Settings */}
-        <a
+        <Link
           href="/settings"
           aria-current={settingsActive ? "page" : undefined}
           aria-label="Settings"
@@ -527,7 +528,7 @@ function UtilityRow({
             )}
           </AnimatePresence>
           {!isExpanded && <span className="sr-only">Settings</span>}
-        </a>
+        </Link>
 
         {/* Pin toggle — standard menu item layout, matches Settings */}
         <Tooltip
@@ -594,44 +595,35 @@ export function Sidebar({
   onTogglePin,
 }: SidebarProps) {
   const shouldReduceMotion = useReducedMotion();
-  const [isHovering, setIsHovering] = useState(false);
-  const isExpanded = isPinned || isHovering;
 
-  const widthTransition = shouldReduceMotion
-    ? { duration: 0.05 }
-    : { duration: 0.28, ease: EASE_OUT_QUART };
+  // Sidebar is binary: pinned (272px, labels + stats) or collapsed (72px rail).
+  // The previous hover-to-expand "peek" affordance was removed — it flashed
+  // during route transitions and was disorienting. The pinned bit is the only
+  // input to layout. Toggle with ⌘\ or the pin button.
+  const isExpanded = isPinned;
 
+  // Width animates via CSS transition rather than Framer Motion — Motion v12
+  // won't interpolate between two CSS variable strings (it applies the
+  // initial value then no-ops subsequent changes), which left the rail stuck
+  // at peek width even when isPinned flipped true. CSS transitions handle
+  // `width` changes between var() values correctly.
   const navStat: Record<NavKey, string | undefined> = {
     "/today": todayCount != null ? `${todayCount} left` : undefined,
     "/week": weekCount != null ? `${weekCount} ahead` : undefined,
     "/month": monthLabel,
   };
 
-  const isFloating = isHovering && !isPinned;
-
   return (
-    <motion.aside
+    <aside
       className={`
         hidden lg:flex flex-col
         h-screen fixed inset-y-0 left-0 z-[var(--z-sticky)]
         bg-[var(--color-surface)]
         border-r border-[var(--color-border-subtle)]
-        transition-shadow duration-[var(--duration-normal)]
-        ${isFloating ? "shadow-[var(--shadow-lg)]" : ""}
+        ${shouldReduceMotion ? "" : "transition-[width] duration-[var(--duration-normal)] ease-[var(--ease-out-quart)]"}
       `}
-      initial={false}
-      animate={{
-        width: isExpanded
-          ? "var(--sidebar-width)"
-          : "var(--sidebar-width-peek)",
-      }}
-      transition={widthTransition}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-      onFocus={() => setIsHovering(true)}
-      onBlur={(e) => {
-        const next = e.relatedTarget as Node | null;
-        if (!next || !e.currentTarget.contains(next)) setIsHovering(false);
+      style={{
+        width: isExpanded ? "var(--sidebar-width)" : "var(--sidebar-width-peek)",
       }}
       aria-label="Primary"
     >
@@ -735,6 +727,6 @@ export function Sidebar({
         isPinned={isPinned}
         onTogglePin={onTogglePin}
       />
-    </motion.aside>
+    </aside>
   );
 }

@@ -91,7 +91,10 @@ export function useCreateTask() {
         old.map((t) => (t.id === ctx?.optimisticId ? created : t)),
       );
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: TASKS_KEY });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
   });
 }
 
@@ -111,7 +114,10 @@ export function useUpdateTask() {
     onError: (_err, _vars, ctx) => {
       if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: TASKS_KEY });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
   });
 }
 
@@ -129,7 +135,10 @@ export function useDeleteTask() {
     onError: (_err, _id, ctx) => {
       if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: TASKS_KEY });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
   });
 }
 
@@ -150,7 +159,10 @@ export function useCompleteTask() {
     onError: (_err, _id, ctx) => {
       if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: TASKS_KEY });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
   });
 }
 
@@ -170,6 +182,9 @@ export function useUncompleteTask() {
     onError: (_err, _id, ctx) => {
       if (ctx?.previous) qc.setQueryData(TASKS_KEY, ctx.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: TASKS_KEY }),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: TASKS_KEY });
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
   });
 }

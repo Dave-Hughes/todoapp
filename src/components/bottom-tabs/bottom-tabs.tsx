@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   CalendarDays,
   CalendarRange,
@@ -34,7 +35,7 @@ export function BottomTabs({ activePath }: BottomTabsProps) {
           const isActive = activePath === path;
           return (
             <li key={path} className="flex-1">
-              <a
+              <Link
                 href={path}
                 aria-current={isActive ? "page" : undefined}
                 className={`
@@ -56,7 +57,7 @@ export function BottomTabs({ activePath }: BottomTabsProps) {
                   aria-hidden="true"
                 />
                 <span>{label}</span>
-              </a>
+              </Link>
             </li>
           );
         })}

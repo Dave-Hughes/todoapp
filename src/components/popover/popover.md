@@ -65,3 +65,4 @@ Portal-rendered, click-triggered popover that positions relative to an anchor el
 ## Changelog
 
 - **Phase 2**: Initial implementation. Portal-rendered, positioned relative to anchor, animated with Framer Motion.
+- **2026-04-15**: Lint fix: positioning effects (`setPos` on open/close and measure-then-reposition) changed from `useEffect` to `useIsoLayoutEffect`. DOM measurement belongs in layout effects; also satisfies `react-hooks/set-state-in-effect`.

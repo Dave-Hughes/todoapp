@@ -77,3 +77,4 @@ In practice, `Checkbox` is used inside `TaskListItem` and rarely instantiated di
 | Date | Change |
 |---|---|
 | 2026-04-12 | Initial implementation. Animated checkmark path, reduced-motion support, circular design, touch-target expansion. |
+| 2026-04-15 | Lint fix: celebration bloom trigger moved from `useEffect` (watching `checked` prop) to the `onClick` handler. Eliminates `react-hooks/set-state-in-effect`. Behaviorally identical — the only path from unchecked→checked is via the click handler. Removed unused `useRef`/`useEffect` imports. |

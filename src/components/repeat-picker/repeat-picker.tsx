@@ -5,11 +5,14 @@ import {
   useRef,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   type KeyboardEvent,
 } from "react";
 import { parseRepeatRule, type RepeatRule, type DayOfWeek } from "./parse-repeat";
 import { formatRepeatRule } from "./format-repeat";
+
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 /* ================================================================
  * Types
@@ -120,7 +123,7 @@ export function RepeatPicker({ value, onChange }: RepeatPickerProps) {
   const [focusedPreset, setFocusedPreset] = useState(0);
 
   /* Pre-populate input when reopening with an existing custom rule */
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     if (value) {
       // Check if the current value matches a preset
       const matchesPreset = PRESETS.some((p) => rulesMatch(value, p.getRule()));
@@ -136,11 +139,12 @@ export function RepeatPicker({ value, onChange }: RepeatPickerProps) {
   }, [value]);
 
   /* Focus the first preset or matching preset on mount */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const initialValueRef = useRef(value);
   useEffect(() => {
+    const initialValue = initialValueRef.current;
     requestAnimationFrame(() => {
-      if (value) {
-        const matchIdx = PRESETS.findIndex((p) => rulesMatch(value, p.getRule()));
+      if (initialValue) {
+        const matchIdx = PRESETS.findIndex((p) => rulesMatch(initialValue, p.getRule()));
         if (matchIdx >= 0) {
           setFocusedPreset(matchIdx);
           presetRefs.current[matchIdx]?.focus();
