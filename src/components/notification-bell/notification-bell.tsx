@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Bell } from "lucide-react";
 import { Popover } from "../popover/popover";
@@ -26,28 +26,35 @@ function badgeLabel(count: number): string {
   return count > 9 ? "9+" : String(count);
 }
 
-/** True when the screen is mobile-width (< 768px). */
-function getIsMobile(): boolean {
+const MOBILE_QUERY = "(max-width: 767px)";
+
+function subscribeToMobileChange(callback: () => void): () => void {
+  if (typeof window === "undefined") return () => {};
+  const mq = window.matchMedia(MOBILE_QUERY);
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+}
+
+function getIsMobileSnapshot(): boolean {
   if (typeof window === "undefined") return false;
-  return window.matchMedia("(max-width: 767px)").matches;
+  return window.matchMedia(MOBILE_QUERY).matches;
+}
+
+function getIsMobileServerSnapshot(): boolean {
+  return false; // SSR default: desktop view
 }
 
 export function NotificationBell({ members }: NotificationBellProps) {
   const router = useRouter();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Sync isMobile with viewport; safe in SSR (defaults false).
-  useEffect(() => {
-    setIsMobile(getIsMobile());
-    const mq = window.matchMedia("(max-width: 767px)");
-    function handleChange(e: MediaQueryListEvent) {
-      setIsMobile(e.matches);
-    }
-    mq.addEventListener("change", handleChange);
-    return () => mq.removeEventListener("change", handleChange);
-  }, []);
+  // Subscribe to matchMedia changes without triggering cascading renders.
+  const isMobile = useSyncExternalStore(
+    subscribeToMobileChange,
+    getIsMobileSnapshot,
+    getIsMobileServerSnapshot,
+  );
 
   const { data: notifications = [] } = useNotifications();
   const { data: dbTasks = [] } = useTasks();
