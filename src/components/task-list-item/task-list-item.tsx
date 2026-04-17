@@ -211,6 +211,7 @@ export function TaskListItem({
   return (
     <div
       ref={constraintsRef}
+      data-task-id={task.id}
       className="relative overflow-hidden group"
     >
       {/* Swipe action backgrounds — each on its own side */}

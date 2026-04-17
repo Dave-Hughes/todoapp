@@ -135,6 +135,17 @@ body {
 }
 
 /*
+ * Task row highlight — flashes when scrolled to from a notification click.
+ * Uses box-shadow to avoid layout changes; accent-subtle for gentle glow.
+ */
+@keyframes task-highlight-flash {
+  0%   { box-shadow: 0 0 0 0 var(--color-accent-subtle); }
+  30%  { box-shadow: 0 0 0 6px var(--color-accent-subtle); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.task-highlight { animation: task-highlight-flash 2s var(--ease-out-quart); }
+
+/*
  * Selection color — accent tinted
  */
 ::selection {
