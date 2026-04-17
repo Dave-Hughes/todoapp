@@ -14,6 +14,8 @@ import { Toast } from "@/components/toast/toast";
 import { ConfirmDialog } from "@/components/confirm-dialog/confirm-dialog";
 import { InviteBanner } from "@/components/invite-banner/invite-banner";
 import { RevealBanner } from "@/components/reveal-banner/reveal-banner";
+import { ReengageBanner } from "@/components/reengage-banner/reengage-banner";
+import { useCurrentInvite } from "@/lib/hooks/use-invite";
 import { TaskListSkeleton } from "@/components/task-list-skeleton/task-list-skeleton";
 import type { Task as DBTask } from "@/db/schema";
 import { useMe } from "@/lib/hooks/use-me";
@@ -91,6 +93,13 @@ function getCompletionCopy(task: DBTask, myUserId: string, partnerName: string |
   return COMPLETION_COPY_GENERAL[seed % COMPLETION_COPY_GENERAL.length];
 }
 
+const REENGAGE_DAYS = 7;
+
+/** Returns the age of a date string in fractional days from now. */
+function daysSince(isoDate: string | Date): number {
+  return (Date.now() - new Date(isoDate).getTime()) / 86_400_000;
+}
+
 /* ================================================================
  * Page component
  * ================================================================ */
@@ -101,6 +110,7 @@ export default function TodayPage() {
 
   // Server data
   const { data: meData } = useMe();
+  const { data: inviteData } = useCurrentInvite();
   const { data: cats = [] } = useCategories();
   const { data: dbTasks = [], isLoading } = useTasks();
   const createTask = useCreateTask();
@@ -112,6 +122,13 @@ export default function TodayPage() {
   const me = meData?.me ?? null;
   const partner = meData?.partner ?? null;
   // Points + counts for the sidebar chrome are owned by (views)/layout.tsx now.
+
+  const activeInvite = inviteData?.invite ?? null;
+  const showReengage = useMemo(() => {
+    if (!activeInvite || meData?.partner) return false;
+    if (activeInvite.status !== "pending") return false;
+    return daysSince(activeInvite.createdAt) >= REENGAGE_DAYS;
+  }, [activeInvite, meData?.partner]);
 
   const categoryNameById = useMemo(
     () => new Map(cats.map((c) => [c.id, c.name])),
@@ -350,6 +367,14 @@ export default function TodayPage() {
           organizerName={partner.displayName}
           firstAssignedTaskId={firstAssignedToMe?.id ?? null}
           preAssignedCount={preAssignedCount}
+        />
+      )}
+
+      {showReengage && activeInvite && (
+        <ReengageBanner
+          inviteId={activeInvite.id}
+          hasEmail={Boolean(activeInvite.email)}
+          inviteUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/invite/${activeInvite.token}`}
         />
       )}
 
