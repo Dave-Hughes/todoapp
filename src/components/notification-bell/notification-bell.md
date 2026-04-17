@@ -30,6 +30,10 @@ Bell icon button with an unread-count badge. Opens a notification panel — a Po
 
 The caller (e.g., `MobileHeader`, `Sidebar`) should only mount `NotificationBell` when the household is paired. In solo state there are no partner-generated notifications, so the bell adds noise without value.
 
+## Known Limitation
+
+Clicking a task-related notification always routes to `/today` and scrolls. Tasks not due today are not highlighted because the `data-task-id` lives only in the currently-rendered view. This is a v1 limitation; a future pass will either find the task's date and route to the correct view (`/week`, `/month`), or drill the user down to the date that contains the task.
+
 ## Changelog
 
 | Date | Change |

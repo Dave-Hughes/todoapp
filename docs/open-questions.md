@@ -113,6 +113,8 @@ Reviewer concerns raised during code-quality passes on Phases 1–2 of the partn
 
 **25. `next build` is not sufficient to catch Next.js sibling dynamic-slug conflicts.** Phase 2 landed `[id]/route.ts` and `[token]/accept/route.ts` as siblings under `/api/invites/`; `next build` passed but `next dev` (Turbopack) crashed with `'id' !== 'token'`. Fixed in Task 22 by renaming `[id]` → `[token]` with `{ token: id } = await params`. Lesson: run a dev-mode smoke (not just build) before declaring a Next.js change clean. Consider adding an explicit dev-server-boot step to the pre-merge checklist.
 
+**26. NotificationBell row-click always navigates to `/today`.** `router.push("/today")` then `scrollToTaskAndHighlight(taskId)` after 400 ms works for tasks due today but silently does nothing for tasks on other dates — the `data-task-id` DOM node doesn't exist in `/today`'s task list. v1 limitation documented in `src/components/notification-bell/notification-bell.md`. Fix in a future pass: look up the task's `dueDate` from the cached `["tasks"]` query and route to `/week` or `/month` with the correct date param, or fallback to `/today` for tasks with no date.
+
 ## Process notes (not questions, just sequencing)
 
 - **~~When to run the `design:design-system` skill:~~** ✅ Done 2026-04-12 (Step 5). Used `/shape` for the Today view design brief, then `/impeccable craft` for implementation. Output: `src/styles/tokens.css` (70+ semantic CSS variables), `src/styles/themes/cozy.css` (full OKLCH Cozy theme), 13 components with sibling `.md` docs, the Today view page with demo data. Fonts: Bricolage Grotesque (body) + Gabarito (display). E2e tests: 120 tests × 3 viewports = 239 passing.
