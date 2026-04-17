@@ -1,5 +1,6 @@
+import { eq, count } from "drizzle-orm";
 import { db } from "@/db";
-import { households, type Household } from "@/db/schema";
+import { households, users, type Household } from "@/db/schema";
 import { seedCategoriesForHousehold } from "./categories";
 
 /**
@@ -22,4 +23,12 @@ export async function createHouseholdForUser(args: {
     .returning();
   await seedCategoriesForHousehold(household.id);
   return household;
+}
+
+export async function householdIsPaired(householdId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ c: count() })
+    .from(users)
+    .where(eq(users.householdId, householdId));
+  return (row?.c ?? 0) >= 2;
 }
