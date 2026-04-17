@@ -60,3 +60,4 @@ tests/.auth/
 # Tool state
 .claire/
 .superpowers/
+.env*.local
