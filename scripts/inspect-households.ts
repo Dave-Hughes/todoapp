@@ -24,7 +24,7 @@ async function run() {
   console.log("\n=== Invites ===");
   for (const i of allInvites) {
     console.log(
-      `  ${i.id.slice(0, 8)}  household=${i.householdId.slice(0, 8)}  status=${i.status}  email=${i.inviteeEmail}`,
+      `  ${i.id.slice(0, 8)}  household=${i.householdId.slice(0, 8)}  status=${i.status}  email=${i.email ?? "—"}`,
     );
   }
 }
