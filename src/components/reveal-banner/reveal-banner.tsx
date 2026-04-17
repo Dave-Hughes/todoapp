@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X } from "lucide-react";
 import { scrollToTaskAndHighlight } from "@/lib/ui/scroll-to-task";
@@ -13,29 +13,44 @@ interface Props {
 
 const STORAGE_KEY = "reveal-dismissed";
 
+// iso-safe layout effect — useLayoutEffect on client, useEffect on server
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export function RevealBanner({ organizerName, firstAssignedTaskId, preAssignedCount }: Props) {
   const router = useRouter();
   const params = useSearchParams();
-  const [mounted, setMounted] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+  const [isDismissed, setIsDismissed] = useState(true);
 
-  useEffect(() => setMounted(true), []);
+  useIsoLayoutEffect(() => {
+    setHasMounted(true);
+    try {
+      setIsDismissed(window.localStorage.getItem(STORAGE_KEY) === "1");
+    } catch {
+      setIsDismissed(false);
+    }
+  }, []);
 
   const wantsReveal = params.get("welcomed") === "1";
-  const alreadyDismissed =
-    mounted && typeof window !== "undefined" && window.localStorage.getItem(STORAGE_KEY) === "1";
 
   useEffect(() => {
-    if (wantsReveal && mounted) {
+    if (wantsReveal && hasMounted) {
       // Strip the query param so reload doesn't re-show.
       router.replace("/today");
     }
-  }, [wantsReveal, mounted, router]);
+  }, [wantsReveal, hasMounted, router]);
 
-  if (!mounted || !wantsReveal || alreadyDismissed) return null;
+  const visible = hasMounted && wantsReveal && !isDismissed;
+
+  if (!visible) return null;
 
   function dismiss() {
-    window.localStorage.setItem(STORAGE_KEY, "1");
-    router.refresh();
+    try {
+      window.localStorage.setItem(STORAGE_KEY, "1");
+    } catch {
+      /* noop */
+    }
+    setIsDismissed(true);
   }
 
   function handleCTA() {
