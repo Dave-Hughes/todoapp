@@ -13,6 +13,7 @@ import { TaskSheet, type TaskFormData } from "@/components/task-sheet/task-sheet
 import { Toast } from "@/components/toast/toast";
 import { ConfirmDialog } from "@/components/confirm-dialog/confirm-dialog";
 import { InviteBanner } from "@/components/invite-banner/invite-banner";
+import { RevealBanner } from "@/components/reveal-banner/reveal-banner";
 import { TaskListSkeleton } from "@/components/task-list-skeleton/task-list-skeleton";
 import type { Task as DBTask } from "@/db/schema";
 import { useMe } from "@/lib/hooks/use-me";
@@ -175,6 +176,13 @@ export default function TodayPage() {
   const isEmpty = !isLoading && active.length === 0 && done.length === 0;
   const isCaughtUp = !isEmpty && filteredActive.length === 0 && filteredDone.length > 0;
 
+  const firstAssignedToMe = me
+    ? dbTasks.find((t) => t.assigneeUserId === me.id && !t.completedAt) ?? null
+    : null;
+  const preAssignedCount = me
+    ? dbTasks.filter((t) => t.assigneeUserId === me.id && !t.completedAt).length
+    : 0;
+
   /* ----------------------------------------------------------------
    * Handlers
    * ---------------------------------------------------------------- */
@@ -336,6 +344,14 @@ export default function TodayPage() {
   return (
     <>
       <InviteBanner hidden={Boolean(partner)} />
+
+      {partner && (
+        <RevealBanner
+          organizerName={partner.displayName}
+          firstAssignedTaskId={firstAssignedToMe?.id ?? null}
+          preAssignedCount={preAssignedCount}
+        />
+      )}
 
       <div className="mb-[var(--space-6)]">
         <h1 className="font-[family-name:var(--font-display)] text-[length:var(--text-2xl)] font-[var(--weight-bold)] text-[color:var(--color-text-primary)] leading-[var(--leading-tight)]">
