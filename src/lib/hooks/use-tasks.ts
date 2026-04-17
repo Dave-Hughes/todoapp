@@ -94,6 +94,7 @@ export function useCreateTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: TASKS_KEY });
       qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
@@ -117,6 +118,7 @@ export function useUpdateTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: TASKS_KEY });
       qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
@@ -138,6 +140,7 @@ export function useDeleteTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: TASKS_KEY });
       qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
@@ -162,6 +165,7 @@ export function useCompleteTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: TASKS_KEY });
       qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
@@ -185,6 +189,7 @@ export function useUncompleteTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: TASKS_KEY });
       qc.invalidateQueries({ queryKey: ["me"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
     },
   });
 }
