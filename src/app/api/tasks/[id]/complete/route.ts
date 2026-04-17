@@ -4,6 +4,7 @@ import {
   updateTaskForHousehold,
 } from "@/lib/db/queries/tasks";
 import { logTaskEvent } from "@/lib/db/queries/task-events";
+import { dispatchTaskCompletedByPartner } from "@/lib/notifications/dispatch";
 import { handleRouteError, json, error } from "@/lib/api/responses";
 
 export async function POST(
@@ -39,6 +40,8 @@ export async function POST(
         metadata: { points: updated.points },
       });
     }
+
+    await dispatchTaskCompletedByPartner({ task: updated, completerUserId: user.id });
 
     return json({ task: updated });
   } catch (err) {
