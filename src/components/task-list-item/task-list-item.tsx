@@ -23,6 +23,8 @@ export interface Task {
   categoryName?: string;
   completedAt?: string;
   completedByName?: string;
+  /** Partner-gated attribution label shown in the Done accordion. Undefined in solo mode. */
+  completedByLabel?: string;
   createdByName: string;
   overdueDays?: number;
   repeatRule?: RepeatRule | null;
@@ -361,6 +363,11 @@ export function TaskListItem({
               {isDone && task.completedByName && (
                 <span className="text-[length:var(--text-xs)] text-[color:var(--color-text-tertiary)]">
                   {task.completedByName}
+                </span>
+              )}
+              {variant === "done" && task.completedByLabel && (
+                <span className="text-[length:var(--text-xs)] text-[color:var(--color-text-tertiary)] ml-[var(--space-2)]">
+                  — {task.completedByLabel}
                 </span>
               )}
             </div>
