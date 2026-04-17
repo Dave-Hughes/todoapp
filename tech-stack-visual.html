@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ToDoApp — Tech Stack Visual</title>
+<style>
+  :root {
+    --bg: #1a1614;
+    --bg-2: #221d1a;
+    --panel: #2a2421;
+    --panel-2: #33292522;
+    --ink: #f2ebe4;
+    --ink-dim: #b8aea3;
+    --ink-faint: #7c736b;
+    --line: #403631;
+    --line-strong: #5a4a41;
+    --accent: #e9a47a;
+    --accent-2: #d8876a;
+
+    --c-frontend: #e9a47a;
+    --c-auth: #b98dd6;
+    --c-api: #7ec4cf;
+    --c-data: #a7d17a;
+    --c-infra: #f3c969;
+    --c-external: #e07a9c;
+    --c-dev: #8da0c8;
+
+    --shadow: 0 1px 0 rgba(0,0,0,.25), 0 8px 24px rgba(0,0,0,.25);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+    background: radial-gradient(1200px 700px at 20% -10%, #2a211d 0%, var(--bg) 55%) fixed;
+    color: var(--ink);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  header {
+    padding: 28px 32px 12px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  header p {
+    margin: 0;
+    color: var(--ink-dim);
+    font-size: 14px;
+    max-width: 680px;
+    line-height: 1.55;
+  }
+
+  .legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 32px 0;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .legend button {
+    appearance: none;
+    background: var(--panel);
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+    transition: all .15s ease;
+  }
+  .legend button .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--c);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 25%, transparent);
+  }
+  .legend button:hover { color: var(--ink); border-color: var(--line-strong); }
+  .legend button.active {
+    color: var(--ink);
+    border-color: color-mix(in srgb, var(--c) 60%, transparent);
+    background: color-mix(in srgb, var(--c) 14%, var(--panel));
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+    padding: 20px 32px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 980px) {
+    main { grid-template-columns: 1fr; }
+  }
+
+  .graph {
+    background: linear-gradient(180deg, var(--bg-2), #1e1815);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 8px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  svg.graph-svg { display: block; width: 100%; height: auto; }
+
+  .node-rect {
+    fill: var(--panel);
+    stroke: var(--line-strong);
+    stroke-width: 1;
+    transition: fill .15s ease, stroke .15s ease, filter .15s ease;
+    cursor: pointer;
+  }
+  .node-group:hover .node-rect,
+  .node-group.selected .node-rect {
+    filter: drop-shadow(0 4px 14px rgba(0,0,0,.4));
+  }
+  .node-group.selected .node-rect {
+    stroke: var(--c);
+    stroke-width: 1.5;
+    fill: color-mix(in srgb, var(--c) 16%, var(--panel));
+  }
+  .node-group.dimmed { opacity: 0.25; }
+  .node-group.highlighted .node-rect {
+    stroke: var(--c);
+  }
+  .node-label {
+    fill: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+    dominant-baseline: middle;
+    text-anchor: middle;
+  }
+  .node-sub {
+    fill: var(--ink-faint);
+    font-size: 10.5px;
+    pointer-events: none;
+    dominant-baseline: middle;
+    text-anchor: middle;
+  }
+  .node-dot {
+    pointer-events: none;
+  }
+
+  .edge {
+    stroke: var(--line);
+    stroke-width: 1.2;
+    fill: none;
+    transition: stroke .15s ease, stroke-width .15s ease, opacity .15s ease;
+  }
+  .edge.highlighted {
+    stroke: var(--accent);
+    stroke-width: 1.8;
+  }
+  .edge.dimmed { opacity: 0.15; }
+
+  .layer-label {
+    fill: var(--ink-faint);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .layer-divider {
+    stroke: var(--line);
+    stroke-dasharray: 3 5;
+    stroke-width: 1;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 20px;
+    min-height: 300px;
+  }
+  .panel .kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--c, var(--ink-faint));
+    margin-bottom: 10px;
+  }
+  .panel .kicker .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--c, var(--ink-faint));
+  }
+  .panel h2 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  .panel .tagline {
+    color: var(--ink-dim);
+    font-size: 13px;
+    margin: 0 0 16px;
+  }
+  .panel h3 {
+    margin: 16px 0 6px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .panel p {
+    margin: 0 0 8px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .panel .connects {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .chip {
+    font-size: 11.5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--bg-2);
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .chip:hover {
+    color: var(--ink);
+    border-color: var(--line-strong);
+    background: var(--panel);
+  }
+  .empty {
+    color: var(--ink-dim);
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  footer {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 32px 40px;
+    color: var(--ink-faint);
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ToDoApp — Tech Stack, visualized</h1>
+  <p>An interactive map of every piece of the stack and how they plug into each other. Hover a node to see its connections. Click to read the full breakdown on the right. Use the legend to filter by category.</p>
+</header>
+
+<div class="legend" id="legend"></div>
+
+<main>
+  <div class="graph">
+    <svg class="graph-svg" id="svg" viewBox="0 0 900 720" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tech stack diagram"></svg>
+  </div>
+
+  <aside class="panel" id="panel">
+    <div class="empty" id="empty">
+      <strong style="color:var(--ink); display:block; margin-bottom:6px;">Pick a node.</strong>
+      Tap or hover any box in the diagram to see what it does, why it's in the stack, and what it connects to.
+    </div>
+    <div id="details" style="display:none;"></div>
+  </aside>
+</main>
+
+<footer>
+  Stack decisions documented in <code>docs/tech-stack.md</code>. This page is a visual companion — not part of the shipped product.
+</footer>
+
+<script>
+/* ---------- Data ---------- */
+const CATEGORIES = {
+  frontend:  { label: "Frontend / UI",   color: "var(--c-frontend)" },
+  auth:      { label: "Auth",            color: "var(--c-auth)" },
+  api:       { label: "App server",      color: "var(--c-api)" },
+  data:      { label: "Data layer",      color: "var(--c-data)" },
+  infra:     { label: "Infrastructure",  color: "var(--c-infra)" },
+  external:  { label: "External service",color: "var(--c-external)" },
+  dev:       { label: "Dev tooling",     color: "var(--c-dev)" },
+};
+
+// layers from top (client) to bottom (infra/tools)
+// x is a column hint 0..4, layer determines y band
+const NODES = [
+  { id: "user",      layer: 0, x: 2, label: "User's Browser", sub: "phone / laptop", cat: "frontend",
+    what: "The user opens the app in a web browser. That's the starting point for every interaction — tapping a task, swiping to complete, pulling down to refresh.",
+    why: "Web-first for v1 so there's one build to ship. Works on phone, tablet, and desktop from day one. A native iOS app is on the roadmap for later.",
+    connects: ["nextjs", "clerk"] },
+
+  { id: "nextjs",    layer: 1, x: 2, label: "Next.js", sub: "App Router · React", cat: "frontend",
+    what: "The framework that runs both the pages the user sees and the server code behind them. One project, one language (TypeScript), one deploy.",
+    why: "Lets a small team ship the marketing site, the app, and the API together. Pairs perfectly with Vercel (same maker).",
+    connects: ["user", "tailwind", "framer", "tanstack", "clerk", "api", "vercel"] },
+
+  { id: "tailwind",  layer: 1, x: 0, label: "Tailwind v4", sub: "utility CSS", cat: "frontend",
+    what: "Styles the UI using short class names like `text-lg` instead of separate CSS files. v4 is the newest, faster version.",
+    why: "Plays well with the 'no hard-coded values, everything from tokens' rule. Design tokens define it once, Tailwind uses them everywhere.",
+    connects: ["nextjs", "framer", "impeccable"] },
+
+  { id: "framer",    layer: 1, x: 4, label: "Framer Motion", sub: "animation", cat: "frontend",
+    what: "Makes UI animations feel physical and smooth — springs, gestures, layout shifts, things appearing and disappearing.",
+    why: "The product principles say 'motion has meaning.' This isn't a spreadsheet, it's supposed to feel warm and delightful.",
+    connects: ["nextjs", "tailwind"] },
+
+  { id: "tanstack",  layer: 2, x: 3, label: "TanStack Query", sub: "data fetching · polling", cat: "frontend",
+    what: "Moves data between browser and server. Caches it, refetches in the background every 5 seconds so partners see each other's updates.",
+    why: "Polling is 'good enough' for v1 and way simpler than real-time sockets. Later, polling can be swapped for push without rewriting components.",
+    connects: ["nextjs", "api"] },
+
+  { id: "clerk",     layer: 2, x: 1, label: "Clerk", sub: "auth · Organizations", cat: "auth",
+    what: "Handles login, signup, email verification, and the couples-invite flow. Its 'Organizations' feature maps to a household (two people sharing tasks).",
+    why: "Auth is easy to get 80% right, hard to get 100% right. Clerk handles the partner-invite complexity out of the box.",
+    connects: ["nextjs", "user", "api", "resend"] },
+
+  { id: "api",       layer: 3, x: 2, label: "API Routes", sub: "Next.js server code", cat: "api",
+    what: "The backend endpoints the app talks to when it needs to create a task, complete one, or fetch the list. Lives inside the same Next.js project.",
+    why: "Keeping API and UI in one codebase means less glue, shared types, and one deploy pipeline.",
+    connects: ["nextjs", "drizzle", "clerk", "tanstack", "resend", "stripe"] },
+
+  { id: "drizzle",   layer: 4, x: 2, label: "Drizzle", sub: "TypeScript ORM", cat: "data",
+    what: "Translator between TypeScript code and the database. You write typed queries; it writes SQL. Also handles schema migrations.",
+    why: "Thin and transparent — no slow 'cold start' like heavier ORMs. Types flow from the database all the way up into React components.",
+    connects: ["api", "neon"] },
+
+  { id: "neon",      layer: 5, x: 2, label: "Neon", sub: "Postgres · us-east-1", cat: "data",
+    what: "Cloud-hosted Postgres database. Stores users, households, tasks, categories — everything persistent.",
+    why: "Serverless, so it scales down to almost nothing when idle. Postgres itself is battle-tested; you won't outgrow it.",
+    connects: ["drizzle"] },
+
+  { id: "vercel",    layer: 6, x: 1, label: "Vercel", sub: "hosting · CI/CD", cat: "infra",
+    what: "Runs the app on the internet. Every code push auto-deploys. Every pull request gets its own preview URL.",
+    why: "Made by the same company as Next.js, so integration is effortless. Zero server management.",
+    connects: ["nextjs", "cloudflare", "github"] },
+
+  { id: "cloudflare",layer: 6, x: 0, label: "Cloudflare", sub: "DNS + registrar", cat: "infra",
+    what: "Sells the domain and runs DNS — the internet phone book that points the domain at Vercel's servers.",
+    why: "Cheapest place to buy domains. Not used as a CDN here because doubling up with Vercel would add two cache layers to debug.",
+    connects: ["vercel"] },
+
+  { id: "github",    layer: 6, x: 2, label: "GitHub", sub: "source control", cat: "infra",
+    what: "Where the code lives. Every change pushed here triggers Vercel to build and deploy.",
+    why: "Standard. Integrates with Vercel out of the box, integrates with Playwright CI, integrates with everything.",
+    connects: ["vercel"] },
+
+  { id: "resend",    layer: 6, x: 3, label: "Resend", sub: "transactional email", cat: "external",
+    what: "Sends emails triggered by app events — partner invites, notifications. Templates can be built in React using the app's design tokens.",
+    why: "Emails that look like the app equals polish. Generous free tier for early volume.",
+    connects: ["api", "clerk"] },
+
+  { id: "stripe",    layer: 6, x: 4, label: "Stripe", sub: "payments (later)", cat: "external",
+    what: "Handles credit card processing and subscriptions. Wired up early, not integrated in v1 — pricing model still open.",
+    why: "Industry default. Account exists early so when pricing is decided, integration is a couple days, not a scramble.",
+    connects: ["api"] },
+
+  { id: "playwright",layer: 7, x: 0, label: "Playwright", sub: "end-to-end tests", cat: "dev",
+    what: "Launches a real browser, clicks real buttons, verifies real flows work. 274 runs passing across three viewports.",
+    why: "Catches the bugs humans actually hit. Mobile viewport testing matters a lot for a mobile-friendly app.",
+    connects: ["nextjs", "neon"] },
+
+  { id: "vitest",    layer: 7, x: 1, label: "Vitest + RTL", sub: "unit & component tests", cat: "dev",
+    what: "Fast tests for small pieces of logic (Vitest) and individual components (React Testing Library).",
+    why: "The 'cheap, fast' layer of the testing pyramid. Faster than Jest, better TypeScript support.",
+    connects: ["nextjs"] },
+
+  { id: "impeccable",layer: 7, x: 2, label: "Impeccable", sub: "AI design skills", cat: "dev",
+    what: "A skills package that teaches AI assistants better design judgment — typography, color, layout, anti-patterns.",
+    why: "The design system is code-first (no Figma), so the quality bar has to be enforced at the point of writing code.",
+    connects: ["tailwind"] },
+
+  { id: "npm",       layer: 7, x: 4, label: "npm", sub: "package manager", cat: "dev",
+    what: "Installs and manages every third-party library listed on this page.",
+    why: "The default. Works with Vercel and every dependency. Zero friction.",
+    connects: ["nextjs"] },
+];
+
+// Derive edges from connects (dedupe undirected)
+const EDGE_SET = new Set();
+const EDGES = [];
+NODES.forEach(n => {
+  (n.connects || []).forEach(t => {
+    const key = [n.id, t].sort().join("|");
+    if (!EDGE_SET.has(key)) {
+      EDGE_SET.add(key);
+      EDGES.push({ a: n.id, b: t });
+    }
+  });
+});
+
+/* ---------- Layout ---------- */
+const W = 900, H = 720;
+const PAD_X = 30, PAD_Y = 26;
+const LAYER_COUNT = 8;
+
+// Custom layer y positions — give layers with more nodes a bit more room
+const LAYER_Y = [
+  60,   // 0 user
+  150,  // 1 frontend
+  245,  // 2 auth + tanstack
+  335,  // 3 api
+  410,  // 4 drizzle
+  485,  // 5 neon
+  580,  // 6 infra + external
+  670,  // 7 dev tools
+];
+
+const LAYER_NAMES = [
+  "Client",
+  "UI Layer",
+  "Client-side Services",
+  "App Server",
+  "ORM",
+  "Database",
+  "Infrastructure & External Services",
+  "Development & Testing",
+];
+
+const NODE_W = 148;
+const NODE_H = 52;
+const COL_COUNT = 5;
+const colX = (c) => PAD_X + (W - PAD_X * 2) * ((c + 0.5) / COL_COUNT) - NODE_W / 2;
+
+function nodePosition(node) {
+  // Custom x handling for certain nodes to avoid overlap — positions curated by hand
+  const manual = {
+    user:        { x: colX(2) },
+    nextjs:      { x: colX(2) },
+    tailwind:    { x: colX(0) + 14 },
+    framer:      { x: colX(4) - 14 },
+    tanstack:    { x: colX(3) + 20 },
+    clerk:       { x: colX(1) - 20 },
+    api:         { x: colX(2) },
+    drizzle:     { x: colX(2) },
+    neon:        { x: colX(2) },
+    vercel:      { x: colX(1) - 10 },
+    cloudflare:  { x: colX(0) - 6 },
+    github:      { x: colX(2) + 6 },
+    resend:      { x: colX(3) + 8 },
+    stripe:      { x: colX(4) + 12 },
+    playwright:  { x: colX(0) },
+    vitest:      { x: colX(1) + 8 },
+    impeccable:  { x: colX(2) + 14 },
+    npm:         { x: colX(4) },
+  };
+  const x = manual[node.id]?.x ?? colX(node.x);
+  const y = LAYER_Y[node.layer] - NODE_H / 2;
+  return { x, y };
+}
+
+/* ---------- Render ---------- */
+const svg = document.getElementById("svg");
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+function el(name, attrs = {}, children = []) {
+  const e = document.createElementNS(SVG_NS, name);
+  for (const k in attrs) {
+    if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+  }
+  (Array.isArray(children) ? children : [children]).forEach(c => {
+    if (c == null) return;
+    e.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+
+// Layer dividers + labels
+LAYER_NAMES.forEach((name, i) => {
+  if (i === 0) return;
+  const y = (LAYER_Y[i] + LAYER_Y[i - 1]) / 2;
+  svg.appendChild(el("line", {
+    x1: PAD_X, x2: W - PAD_X, y1: y, y2: y, class: "layer-divider"
+  }));
+});
+LAYER_NAMES.forEach((name, i) => {
+  svg.appendChild(el("text", {
+    x: W - PAD_X, y: LAYER_Y[i] - NODE_H / 2 - 8, class: "layer-label", "text-anchor": "end"
+  }, name));
+});
+
+// Index node positions
+const POS = {};
+NODES.forEach(n => POS[n.id] = { ...nodePosition(n), node: n });
+
+// Edges (draw first, under nodes)
+const edgesLayer = el("g", { id: "edges" });
+svg.appendChild(edgesLayer);
+
+const EDGE_ELS = [];
+EDGES.forEach(e => {
+  const a = POS[e.a], b = POS[e.b];
+  if (!a || !b) return;
+  const x1 = a.x + NODE_W / 2;
+  const y1 = a.y + NODE_H / 2;
+  const x2 = b.x + NODE_W / 2;
+  const y2 = b.y + NODE_H / 2;
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+  const dy = Math.abs(y2 - y1);
+  const dx = Math.abs(x2 - x1);
+  // Bezier: control points bias vertically so lines curve past nodes
+  const c1x = x1, c1y = y1 + Math.sign(y2 - y1) * Math.max(20, dy * 0.35);
+  const c2x = x2, c2y = y2 - Math.sign(y2 - y1) * Math.max(20, dy * 0.35);
+  const d = (y1 === y2)
+    ? `M ${x1} ${y1} Q ${mx} ${y1 + (dx > 200 ? -30 : -18)} ${x2} ${y2}`
+    : `M ${x1} ${y1} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${x2} ${y2}`;
+  const path = el("path", { d, class: "edge" });
+  path.dataset.a = e.a;
+  path.dataset.b = e.b;
+  edgesLayer.appendChild(path);
+  EDGE_ELS.push(path);
+});
+
+// Nodes
+const NODE_ELS = {};
+const nodesLayer = el("g", { id: "nodes" });
+svg.appendChild(nodesLayer);
+
+NODES.forEach(n => {
+  const { x, y } = POS[n.id];
+  const g = el("g", { class: "node-group", "data-id": n.id });
+  const color = CATEGORIES[n.cat].color;
+  g.style.setProperty("--c", color);
+
+  const rect = el("rect", {
+    x, y, width: NODE_W, height: NODE_H, rx: 10, ry: 10, class: "node-rect"
+  });
+  const dot = el("circle", {
+    cx: x + 12, cy: y + 12, r: 4, fill: color, class: "node-dot"
+  });
+  const label = el("text", {
+    x: x + NODE_W / 2, y: y + NODE_H / 2 - 6, class: "node-label"
+  }, n.label);
+  const sub = el("text", {
+    x: x + NODE_W / 2, y: y + NODE_H / 2 + 10, class: "node-sub"
+  }, n.sub);
+
+  g.appendChild(rect);
+  g.appendChild(dot);
+  g.appendChild(label);
+  g.appendChild(sub);
+
+  g.addEventListener("mouseenter", () => highlight(n.id));
+  g.addEventListener("mouseleave", () => clearHighlight());
+  g.addEventListener("click", () => selectNode(n.id));
+
+  nodesLayer.appendChild(g);
+  NODE_ELS[n.id] = g;
+});
+
+/* ---------- Legend ---------- */
+const legendEl = document.getElementById("legend");
+let activeCats = new Set(Object.keys(CATEGORIES));
+Object.entries(CATEGORIES).forEach(([key, v]) => {
+  const btn = document.createElement("button");
+  btn.style.setProperty("--c", v.color);
+  btn.className = "active";
+  btn.dataset.cat = key;
+  btn.innerHTML = `<span class="dot"></span>${v.label}`;
+  btn.addEventListener("click", () => {
+    if (activeCats.has(key)) activeCats.delete(key); else activeCats.add(key);
+    btn.classList.toggle("active");
+    applyFilter();
+  });
+  legendEl.appendChild(btn);
+});
+
+function applyFilter() {
+  NODES.forEach(n => {
+    const g = NODE_ELS[n.id];
+    if (activeCats.has(n.cat)) g.style.display = "";
+    else g.style.display = "none";
+  });
+  EDGE_ELS.forEach(e => {
+    const a = NODES.find(n => n.id === e.dataset.a);
+    const b = NODES.find(n => n.id === e.dataset.b);
+    const show = activeCats.has(a.cat) && activeCats.has(b.cat);
+    e.style.display = show ? "" : "none";
+  });
+}
+
+/* ---------- Interaction ---------- */
+let selectedId = null;
+
+function neighborsOf(id) {
+  const set = new Set();
+  EDGES.forEach(e => {
+    if (e.a === id) set.add(e.b);
+    if (e.b === id) set.add(e.a);
+  });
+  return set;
+}
+
+function highlight(id) {
+  if (selectedId) return; // don't override selection on hover
+  const neighbors = neighborsOf(id);
+  Object.values(NODE_ELS).forEach(g => {
+    const nid = g.dataset.id;
+    g.classList.remove("selected", "highlighted", "dimmed");
+    if (nid === id) g.classList.add("selected");
+    else if (neighbors.has(nid)) g.classList.add("highlighted");
+    else g.classList.add("dimmed");
+  });
+  EDGE_ELS.forEach(e => {
+    const match = e.dataset.a === id || e.dataset.b === id;
+    e.classList.toggle("highlighted", match);
+    e.classList.toggle("dimmed", !match);
+  });
+}
+
+function clearHighlight() {
+  if (selectedId) return highlight(selectedId) || persistSelection();
+  Object.values(NODE_ELS).forEach(g => g.classList.remove("highlighted", "dimmed", "selected"));
+  EDGE_ELS.forEach(e => e.classList.remove("highlighted", "dimmed"));
+}
+
+function persistSelection() {
+  if (!selectedId) return;
+  NODE_ELS[selectedId].classList.add("selected");
+}
+
+function selectNode(id) {
+  selectedId = id;
+  highlight(id);
+  renderPanel(id);
+}
+
+/* ---------- Detail panel ---------- */
+const emptyEl = document.getElementById("empty");
+const detailsEl = document.getElementById("details");
+
+function renderPanel(id) {
+  const n = NODES.find(x => x.id === id);
+  if (!n) return;
+  const cat = CATEGORIES[n.cat];
+  emptyEl.style.display = "none";
+  detailsEl.style.display = "";
+  detailsEl.style.setProperty("--c", cat.color);
+
+  const connects = (n.connects || []).map(cid => {
+    const other = NODES.find(x => x.id === cid);
+    if (!other) return "";
+    return `<span class="chip" data-id="${other.id}">${other.label}</span>`;
+  }).join("");
+
+  detailsEl.innerHTML = `
+    <div class="kicker"><span class="dot"></span>${cat.label}</div>
+    <h2>${n.label}</h2>
+    <p class="tagline">${n.sub}</p>
+
+    <h3>What it does</h3>
+    <p>${n.what}</p>
+
+    <h3>Why it's a good fit</h3>
+    <p>${n.why}</p>
+
+    <h3>Connects to</h3>
+    <div class="connects">${connects}</div>
+  `;
+
+  detailsEl.querySelectorAll(".chip").forEach(c => {
+    c.addEventListener("click", () => selectNode(c.dataset.id));
+  });
+}
+
+/* Click empty area to deselect */
+svg.addEventListener("click", (e) => {
+  if (e.target === svg || e.target.tagName === "line" || e.target.tagName === "text" && e.target.classList.contains("layer-label")) {
+    selectedId = null;
+    clearHighlight();
+    emptyEl.style.display = "";
+    detailsEl.style.display = "none";
+  }
+});
+
+/* Preselect Next.js so the panel isn't empty on load */
+selectNode("nextjs");
+</script>
+</body>
+</html>
