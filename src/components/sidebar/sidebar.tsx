@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { AnimatedNumber } from "../points-display/points-display";
 import { Tooltip } from "../tooltip/tooltip";
+import { NotificationBell } from "../notification-bell/notification-bell";
 
 /** Detect mac for the right modifier glyph. Safe in SSR (returns false). */
 function isMac() {
@@ -39,7 +40,9 @@ const MAIN_NAV: NavItem[] = [
 
 interface SidebarProps {
   activePath: string;
+  userId?: string;
   userName: string;
+  partnerId?: string;
   partnerName?: string;
   userPoints: number;
   partnerPoints?: number;
@@ -423,12 +426,18 @@ function NavRow({
 function UtilityRow({
   isExpanded,
   activePath,
+  userId,
+  userName,
+  partnerId,
   partnerName,
   isPinned,
   onTogglePin,
 }: {
   isExpanded: boolean;
   activePath: string;
+  userId?: string;
+  userName: string;
+  partnerId?: string;
   partnerName?: string;
   isPinned: boolean;
   onTogglePin: () => void;
@@ -484,6 +493,39 @@ function UtilityRow({
           <UserPlus size={20} strokeWidth={2.25} aria-hidden="true" />
           <span className="sr-only">Bring your person in</span>
         </Link>
+      )}
+
+      {/* Paired-state notification bell — replaces the invite affordance once
+          the partner has joined. Rendered in both collapsed and expanded states
+          using the same icon-only / icon+label layout rhythm as Settings. */}
+      {partnerName && userId && partnerId && (
+        <div
+          className={`
+            flex items-center h-11 rounded-[var(--radius-md)]
+            ${isExpanded ? "w-full px-[var(--space-3)] gap-[var(--space-2)]" : "w-11 justify-center self-center"}
+          `}
+        >
+          <NotificationBell
+            members={[
+              { id: userId, displayName: userName },
+              { id: partnerId, displayName: partnerName },
+            ]}
+          />
+          <AnimatePresence initial={false}>
+            {isExpanded && (
+              <motion.span
+                key="bell-label"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.14, ease: EASE_OUT_QUART }}
+                className="text-[length:var(--text-sm)] font-[var(--weight-medium)] text-[color:var(--color-text-tertiary)]"
+              >
+                Notifications
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </div>
       )}
 
       {/* Always-vertical stack. Settings and Pin use an identical
@@ -581,7 +623,9 @@ function UtilityRow({
  * ================================================================ */
 export function Sidebar({
   activePath,
+  userId,
   userName,
+  partnerId,
   partnerName,
   userPoints,
   partnerPoints,
@@ -723,6 +767,9 @@ export function Sidebar({
       <UtilityRow
         isExpanded={isExpanded}
         activePath={activePath}
+        userId={userId}
+        userName={userName}
+        partnerId={partnerId}
         partnerName={partnerName}
         isPinned={isPinned}
         onTogglePin={onTogglePin}
