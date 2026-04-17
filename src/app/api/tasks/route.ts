@@ -5,6 +5,7 @@ import {
 } from "@/lib/db/queries/tasks";
 import { getDefaultCategoryForHousehold } from "@/lib/db/queries/categories";
 import { logTaskEvent } from "@/lib/db/queries/task-events";
+import { dispatchTaskAssigned } from "@/lib/notifications/dispatch";
 import { createTaskSchema } from "@/lib/api/validators";
 import { handleRouteError, json } from "@/lib/api/responses";
 
@@ -51,6 +52,8 @@ export async function POST(req: Request) {
       actorUserId: user.id,
       eventType: "created",
     });
+
+    await dispatchTaskAssigned({ task, actorUserId: user.id });
 
     return json({ task }, { status: 201 });
   } catch (err) {
