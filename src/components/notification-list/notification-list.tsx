@@ -51,7 +51,7 @@ export function NotificationList({ notifications, members, taskTitles, onRowClic
   }
 
   return (
-    <ul className="flex flex-col divide-y divide-[var(--color-border-subtle)]">
+    <ul className="flex flex-col divide-y divide-[var(--color-border-subtle)]" role="list" aria-label="Notifications">
       {notifications.map((n) => {
         const Icon = iconFor(n.type);
         const actor = members.find((m) => m.id === n.actorUserId)?.displayName ?? "They";
@@ -73,7 +73,7 @@ export function NotificationList({ notifications, members, taskTitles, onRowClic
               )}
             </div>
             <div className="flex-1">
-              <div className="text-[length:var(--text-sm)] text-[color:var(--color-text-primary)] leading-[var(--leading-snug)]">
+              <div className="text-[length:var(--text-sm)] text-[color:var(--color-text-primary)] leading-[var(--leading-tight)]">
                 {copyFor(n, actor, title)}
               </div>
               <div className="text-[length:var(--text-xs)] text-[color:var(--color-text-tertiary)] mt-[var(--space-1)]">
