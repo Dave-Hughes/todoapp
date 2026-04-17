@@ -78,7 +78,7 @@ export function ReengageBanner({ inviteId, hasEmail, inviteUrl, onResent }: Prop
           type="button"
           disabled={busy}
           onClick={handleResend}
-          className="rounded-full bg-[var(--color-text-primary)] text-[var(--color-surface)] text-[length:var(--text-sm)] font-[var(--weight-semibold)] px-[var(--space-3)] py-[var(--space-1-5)] hover:opacity-90 disabled:opacity-50 transition-opacity duration-[var(--duration-instant)]"
+          className="rounded-full bg-[var(--color-accent)] text-[color:var(--color-accent-text)] text-[length:var(--text-sm)] font-[var(--weight-semibold)] px-[var(--space-3)] py-[var(--space-1-5)] hover:bg-[var(--color-accent-hover)] disabled:opacity-50 transition-colors duration-[var(--duration-instant)]"
         >
           {hasEmail ? "Re-send invite" : "Copy link again"}
         </button>

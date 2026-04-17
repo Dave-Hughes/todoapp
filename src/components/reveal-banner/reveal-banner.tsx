@@ -84,7 +84,7 @@ export function RevealBanner({ organizerName, firstAssignedTaskId, preAssignedCo
       {preAssignedCount > 0 && firstAssignedTaskId && (
         <button
           onClick={handleCTA}
-          className="mt-[var(--space-3)] inline-flex items-center gap-[var(--space-1)] rounded-full bg-[var(--color-text-primary)] text-[var(--color-surface)] text-[length:var(--text-sm)] font-semibold px-[var(--space-3)] py-[var(--space-1-5)] hover:opacity-90"
+          className="mt-[var(--space-3)] inline-flex items-center gap-[var(--space-1)] rounded-full bg-[var(--color-accent)] text-[color:var(--color-accent-text)] text-[length:var(--text-sm)] font-semibold px-[var(--space-3)] py-[var(--space-1-5)] hover:bg-[var(--color-accent-hover)] transition-colors duration-[var(--duration-instant)]"
         >
           Want to grab one? ↓
         </button>
