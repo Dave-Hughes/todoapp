@@ -16,7 +16,9 @@ const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : use
 interface AppShellProps {
   children: React.ReactNode;
   activePath: string;
+  userId?: string;
   userName: string;
+  partnerId?: string;
   partnerName?: string;
   userPoints: number;
   partnerPoints?: number;
@@ -31,7 +33,9 @@ interface AppShellProps {
 export function AppShell({
   children,
   activePath,
+  userId,
   userName,
+  partnerId,
   partnerName,
   userPoints,
   partnerPoints,
@@ -118,7 +122,9 @@ export function AppShell({
 
       <Sidebar
         activePath={activePath}
+        userId={userId}
         userName={userName}
+        partnerId={partnerId}
         partnerName={partnerName}
         userPoints={userPoints}
         partnerPoints={partnerPoints}
@@ -133,7 +139,9 @@ export function AppShell({
       />
 
       <MobileHeader
+        userId={userId}
         userName={userName}
+        partnerId={partnerId}
         partnerName={partnerName}
         userPoints={userPoints}
         partnerPoints={partnerPoints}

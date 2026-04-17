@@ -4,9 +4,12 @@ import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { Avatar } from "../avatar/avatar";
 import { MobilePoints } from "../points-display/points-display";
+import { NotificationBell } from "../notification-bell/notification-bell";
 
 interface MobileHeaderProps {
+  userId?: string;
   userName: string;
+  partnerId?: string;
   partnerName?: string;
   userPoints: number;
   partnerPoints?: number;
@@ -16,7 +19,9 @@ interface MobileHeaderProps {
 }
 
 export function MobileHeader({
+  userId,
   userName,
+  partnerId,
   partnerName,
   userPoints,
   partnerPoints,
@@ -43,11 +48,9 @@ export function MobileHeader({
       />
 
       <div className="flex items-center gap-[var(--space-2)]">
-        {/* Solo-state invite affordance — mirrors the sidebar's persistent
-            invite entry. Stays visible even after the InviteBanner is
-            dismissed; this is the always-reachable path to /invite on
-            mobile. */}
-        {isSolo && (
+        {/* Right-slot: invite link (solo) or notification bell (paired).
+            Only one is ever rendered — they share the same position. */}
+        {isSolo ? (
           <Link
             href="/invite"
             aria-label="Bring your person in"
@@ -64,6 +67,15 @@ export function MobileHeader({
           >
             <UserPlus size={18} strokeWidth={2.25} aria-hidden="true" />
           </Link>
+        ) : (
+          userId && partnerId && partnerName ? (
+            <NotificationBell
+              members={[
+                { id: userId, displayName: userName },
+                { id: partnerId, displayName: partnerName },
+              ]}
+            />
+          ) : null
         )}
 
         {/* Avatar with notification dot */}
