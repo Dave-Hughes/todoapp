@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { Plus } from "lucide-react";
 
-type EmptyVariant = "no-tasks" | "caught-up";
+type EmptyVariant = "no-tasks" | "caught-up" | "theirs-solo";
 
 interface EmptyStateProps {
   variant: EmptyVariant;
@@ -32,6 +33,17 @@ function getCaughtUpCopy(): string {
   return caughtUpCopy[getDayOfYear() % caughtUpCopy.length];
 }
 
+const theirsSoloCopy = [
+  "This is where your person's tasks will live.",
+  "Your person's side is waiting.",
+  "Nothing here yet — that's their column.",
+  "Once they're in, this page fills up.",
+];
+
+function getTheirsSoloCopy(): string {
+  return theirsSoloCopy[getDayOfYear() % theirsSoloCopy.length];
+}
+
 function getSummaryCopy(count: number): string {
   const n = count === 1 ? "one thing" : `${count} things`;
   const variants = [
@@ -44,6 +56,31 @@ function getSummaryCopy(count: number): string {
 
 export function EmptyState({ variant, onAddTask, completedCount }: EmptyStateProps) {
   const shouldReduceMotion = useReducedMotion();
+
+  if (variant === "theirs-solo") {
+    return (
+      <motion.div
+        initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.5, ease: [0.25, 1, 0.5, 1] }}
+        className="flex flex-col items-center justify-center py-[var(--space-12)] px-[var(--space-6)] text-center"
+      >
+        <div className="text-[color:var(--color-text-tertiary)] text-2xl tracking-widest mb-[var(--space-4)]">· · ·</div>
+        <h2 className="font-[family-name:var(--font-display)] text-[length:var(--text-lg)] leading-[var(--leading-tight)] max-w-[24ch]">
+          {getTheirsSoloCopy()}
+        </h2>
+        <p className="mt-[var(--space-2)] text-[length:var(--text-sm)] text-[color:var(--color-text-secondary)]">
+          Once they&apos;re in, their stuff shows up right here.
+        </p>
+        <Link
+          href="/invite"
+          className="mt-[var(--space-4)] text-[length:var(--text-sm)] font-semibold text-[color:var(--color-accent)] hover:underline"
+        >
+          Bring your person in →
+        </Link>
+      </motion.div>
+    );
+  }
 
   const isFirstRun = variant === "no-tasks";
 

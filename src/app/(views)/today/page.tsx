@@ -392,6 +392,8 @@ export default function TodayPage() {
 
       {isLoading ? (
         <TaskListSkeleton />
+      ) : filter === "theirs" && !partner ? (
+        <EmptyState variant="theirs-solo" />
       ) : isEmpty ? (
         <EmptyState variant="no-tasks" onAddTask={handleAddTask} />
       ) : isCaughtUp ? (
