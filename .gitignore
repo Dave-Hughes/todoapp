@@ -59,3 +59,4 @@ tests/.auth/
 
 # Tool state
 .claire/
+.superpowers/
