@@ -151,6 +151,16 @@ export function toUITask(
     return diff > 0 ? diff : undefined;
   })();
 
+  // Only show attribution when both users are in the household (partner exists).
+  // Solo mode yields undefined so the label is never shown for a lone user.
+  const completedByLabel = partner
+    ? t.completedByUserId === me.id
+      ? me.displayName
+      : t.completedByUserId === partner.id
+        ? partner.displayName
+        : undefined
+    : undefined;
+
   return {
     id: t.id,
     title: t.title,
@@ -162,6 +172,7 @@ export function toUITask(
     createdByName: createdByName ?? "",
     completedAt: t.completedAt ? t.completedAt.toString() : undefined,
     completedByName,
+    completedByLabel,
     overdueDays,
     repeatRule: dbRepeatRuleToUI(t.repeatRule),
     points: t.points,

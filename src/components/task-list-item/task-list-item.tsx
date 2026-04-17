@@ -23,6 +23,8 @@ export interface Task {
   categoryName?: string;
   completedAt?: string;
   completedByName?: string;
+  /** Partner-gated attribution label shown in the Done accordion. Undefined in solo mode. */
+  completedByLabel?: string;
   createdByName: string;
   overdueDays?: number;
   repeatRule?: RepeatRule | null;
@@ -211,6 +213,7 @@ export function TaskListItem({
   return (
     <div
       ref={constraintsRef}
+      data-task-id={task.id}
       className="relative overflow-hidden group"
     >
       {/* Swipe action backgrounds — each on its own side */}
@@ -357,9 +360,9 @@ export function TaskListItem({
                 );
               })()}
 
-              {isDone && task.completedByName && (
+              {isDone && (task.completedByLabel || task.completedByName) && (
                 <span className="text-[length:var(--text-xs)] text-[color:var(--color-text-tertiary)]">
-                  {task.completedByName}
+                  {task.completedByLabel ? `— ${task.completedByLabel}` : task.completedByName}
                 </span>
               )}
             </div>

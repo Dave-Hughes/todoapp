@@ -506,6 +506,8 @@ export default function WeekPage() {
       {/* ---- Content ---- */}
       {isLoading ? (
         <TaskListSkeleton />
+      ) : filter === "theirs" && !partner ? (
+        <EmptyState variant="theirs-solo" />
       ) : isWeekEmpty ? (
         <EmptyState variant="no-tasks" onAddTask={handleAddTask} />
       ) : isDayEmpty ? (

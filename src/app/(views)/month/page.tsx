@@ -7,6 +7,7 @@ import { EASE_OUT_QUART, taskListVariants } from "@/lib/motion";
 import { FilterToggle, type FilterValue } from "@/components/filter-toggle/filter-toggle";
 import { TaskListItem, type Task as UITask } from "@/components/task-list-item/task-list-item";
 import { DoneAccordion } from "@/components/done-accordion/done-accordion";
+import { EmptyState } from "@/components/empty-state/empty-state";
 import { Fab } from "@/components/fab/fab";
 import { TaskSheet, type TaskFormData } from "@/components/task-sheet/task-sheet";
 import { Toast } from "@/components/toast/toast";
@@ -763,7 +764,9 @@ export default function MonthPage() {
                   <div className="overflow-hidden min-h-0">
                   <div className="p-[var(--space-4)] lg:p-[var(--space-6)] bg-[var(--color-canvas)]">
                     {/* Day content */}
-                    {isDayEmpty ? (
+                    {filter === "theirs" && !partner ? (
+                      <EmptyState variant="theirs-solo" />
+                    ) : isDayEmpty ? (
                       <div className="flex flex-col items-center justify-center py-[var(--space-6)] text-center">
                         <div
                           className="mb-[var(--space-3)] h-12 w-12 rounded-[var(--radius-full)] bg-[var(--color-accent-subtle)] flex items-center justify-center"

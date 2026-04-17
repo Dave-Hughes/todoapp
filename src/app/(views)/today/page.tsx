@@ -13,6 +13,9 @@ import { TaskSheet, type TaskFormData } from "@/components/task-sheet/task-sheet
 import { Toast } from "@/components/toast/toast";
 import { ConfirmDialog } from "@/components/confirm-dialog/confirm-dialog";
 import { InviteBanner } from "@/components/invite-banner/invite-banner";
+import { RevealBanner } from "@/components/reveal-banner/reveal-banner";
+import { ReengageBanner } from "@/components/reengage-banner/reengage-banner";
+import { useCurrentInvite } from "@/lib/hooks/use-invite";
 import { TaskListSkeleton } from "@/components/task-list-skeleton/task-list-skeleton";
 import type { Task as DBTask } from "@/db/schema";
 import { useMe } from "@/lib/hooks/use-me";
@@ -90,6 +93,13 @@ function getCompletionCopy(task: DBTask, myUserId: string, partnerName: string |
   return COMPLETION_COPY_GENERAL[seed % COMPLETION_COPY_GENERAL.length];
 }
 
+const REENGAGE_DAYS = 7;
+
+/** Returns the age of a date string in fractional days from now. */
+function daysSince(isoDate: string | Date): number {
+  return (Date.now() - new Date(isoDate).getTime()) / 86_400_000;
+}
+
 /* ================================================================
  * Page component
  * ================================================================ */
@@ -100,6 +110,7 @@ export default function TodayPage() {
 
   // Server data
   const { data: meData } = useMe();
+  const { data: inviteData } = useCurrentInvite();
   const { data: cats = [] } = useCategories();
   const { data: dbTasks = [], isLoading } = useTasks();
   const createTask = useCreateTask();
@@ -111,6 +122,13 @@ export default function TodayPage() {
   const me = meData?.me ?? null;
   const partner = meData?.partner ?? null;
   // Points + counts for the sidebar chrome are owned by (views)/layout.tsx now.
+
+  const activeInvite = inviteData?.invite ?? null;
+  const showReengage = useMemo(() => {
+    if (!activeInvite || meData?.partner) return false;
+    if (activeInvite.status !== "pending") return false;
+    return daysSince(activeInvite.createdAt) >= REENGAGE_DAYS;
+  }, [activeInvite, meData?.partner]);
 
   const categoryNameById = useMemo(
     () => new Map(cats.map((c) => [c.id, c.name])),
@@ -174,6 +192,13 @@ export default function TodayPage() {
 
   const isEmpty = !isLoading && active.length === 0 && done.length === 0;
   const isCaughtUp = !isEmpty && filteredActive.length === 0 && filteredDone.length > 0;
+
+  const firstAssignedToMe = me
+    ? dbTasks.find((t) => t.assigneeUserId === me.id && !t.completedAt) ?? null
+    : null;
+  const preAssignedCount = me
+    ? dbTasks.filter((t) => t.assigneeUserId === me.id && !t.completedAt).length
+    : 0;
 
   /* ----------------------------------------------------------------
    * Handlers
@@ -337,6 +362,27 @@ export default function TodayPage() {
     <>
       <InviteBanner hidden={Boolean(partner)} />
 
+      {partner && (
+        <RevealBanner
+          organizerName={partner.displayName}
+          firstAssignedTaskId={firstAssignedToMe?.id ?? null}
+          preAssignedCount={preAssignedCount}
+        />
+      )}
+
+      {showReengage && activeInvite && (
+        <ReengageBanner
+          inviteId={activeInvite.id}
+          hasEmail={Boolean(activeInvite.email)}
+          inviteUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/invite/${activeInvite.token}`}
+          onResent={() =>
+            setToast({
+              message: activeInvite.email ? "Invite sent again." : "Link copied.",
+            })
+          }
+        />
+      )}
+
       <div className="mb-[var(--space-6)]">
         <h1 className="font-[family-name:var(--font-display)] text-[length:var(--text-2xl)] font-[var(--weight-bold)] text-[color:var(--color-text-primary)] leading-[var(--leading-tight)]">
           {dayName}
@@ -376,6 +422,8 @@ export default function TodayPage() {
 
       {isLoading ? (
         <TaskListSkeleton />
+      ) : filter === "theirs" && !partner ? (
+        <EmptyState variant="theirs-solo" />
       ) : isEmpty ? (
         <EmptyState variant="no-tasks" onAddTask={handleAddTask} />
       ) : isCaughtUp ? (

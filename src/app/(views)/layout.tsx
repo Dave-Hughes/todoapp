@@ -97,7 +97,9 @@ export default function ViewsLayout({
   return (
     <AppShell
       activePath={pathname}
+      userId={me?.id}
       userName={me?.displayName ?? ""}
+      partnerId={partner?.id}
       partnerName={partner?.displayName ?? ""}
       userPoints={mePoints.lifetime}
       partnerPoints={partnerPoints?.lifetime}

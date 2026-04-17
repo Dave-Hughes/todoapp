@@ -5,6 +5,7 @@ import {
   getTaskForHousehold,
 } from "@/lib/db/queries/tasks";
 import { logTaskEvent } from "@/lib/db/queries/task-events";
+import { dispatchTaskAssigned } from "@/lib/notifications/dispatch";
 import { updateTaskSchema } from "@/lib/api/validators";
 import { handleRouteError, json, error } from "@/lib/api/responses";
 
@@ -54,6 +55,10 @@ export async function PATCH(
           ? { old_date: existing.dueDate, new_date: updated.dueDate }
           : undefined,
     });
+
+    if (wasReassigned) {
+      await dispatchTaskAssigned({ task: updated, actorUserId: user.id });
+    }
 
     return json({ task: updated });
   } catch (err) {

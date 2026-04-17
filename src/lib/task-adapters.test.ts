@@ -238,6 +238,47 @@ describe("toUITask", () => {
 });
 
 /* ================================================================
+ * toUITask completedByLabel
+ * ================================================================ */
+
+describe("toUITask completedByLabel", () => {
+  const me = { id: "user-me", displayName: "Dave" };
+  const partner = { id: "user-partner", displayName: "Krista" };
+
+  it("labels a task completed by the current user", () => {
+    const ui = toUITask(
+      makeDBTask({ completedAt: new Date(), completedByUserId: "user-me" }),
+      me, partner, EMPTY_CAT_MAP, "2026-04-15",
+    );
+    expect(ui.completedByLabel).toBe("Dave");
+  });
+
+  it("labels a task completed by the partner", () => {
+    const ui = toUITask(
+      makeDBTask({ completedAt: new Date(), completedByUserId: "user-partner" }),
+      me, partner, EMPTY_CAT_MAP, "2026-04-15",
+    );
+    expect(ui.completedByLabel).toBe("Krista");
+  });
+
+  it("omits the label in solo mode (no partner)", () => {
+    const ui = toUITask(
+      makeDBTask({ completedAt: new Date(), completedByUserId: "user-me" }),
+      me, null, EMPTY_CAT_MAP, "2026-04-15",
+    );
+    expect(ui.completedByLabel).toBeUndefined();
+  });
+
+  it("omits the label when completedByUserId is null", () => {
+    const ui = toUITask(
+      makeDBTask({ completedAt: null, completedByUserId: null }),
+      me, partner, EMPTY_CAT_MAP, "2026-04-15",
+    );
+    expect(ui.completedByLabel).toBeUndefined();
+  });
+});
+
+/* ================================================================
  * uiTaskToFormData
  * ================================================================ */
 
