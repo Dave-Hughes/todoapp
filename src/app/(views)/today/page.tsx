@@ -375,6 +375,11 @@ export default function TodayPage() {
           inviteId={activeInvite.id}
           hasEmail={Boolean(activeInvite.email)}
           inviteUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/invite/${activeInvite.token}`}
+          onResent={() =>
+            setToast({
+              message: activeInvite.email ? "Invite sent again." : "Link copied.",
+            })
+          }
         />
       )}
 
